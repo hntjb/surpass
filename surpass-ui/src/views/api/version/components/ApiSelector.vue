@@ -1,44 +1,16 @@
 <template>
   <el-card class="api-selector-card" shadow="never">
-    <template #header>
-      <div class="card-header">
-        <div style="display: flex;justify-content: flex-start;align-items: center">
-          <span>选择API：</span>
-          <div class="selector-content">
-            <el-select
-                :model-value="selectedApiId"
-                placeholder="请选择要管理的API"
-                style="width: 400px"
-                @update:model-value="handleApiChange"
-                :loading="loading"
-            >
-              <el-option
-                  v-for="api in apiList"
-                  :key="api.id"
-                  :label="api.name"
-                  :value="api.id"
-              >
-                <div class="api-option">
-                  <span class="api-name">{{ api.name }}</span>
-                  <span class="api-path">{{ api.path }}</span>
-                </div>
-              </el-option>
-            </el-select>
-          </div>
-        </div>
-        <div>
-          <el-button type="primary" @click="handleCreate">
-            新增版本
-          </el-button>
-          <el-button type="success" @click="handleCreateNext" v-if="hasPublishedVersion">
-            新增下一个版本
-          </el-button>
-          <el-button type="primary" @click="handleRefresh" :loading="refreshing">
-            刷新
-          </el-button>
-        </div>
-      </div>
-    </template>
+    <div style="text-align: right">
+      <el-button type="primary" @click="handleCreate">
+        新增版本
+      </el-button>
+      <el-button type="success" @click="handleCreateNext" v-if="hasPublishedVersion">
+        新增下一个版本
+      </el-button>
+      <el-button type="primary" @click="handleRefresh" :loading="refreshing">
+        刷新
+      </el-button>
+    </div>
   </el-card>
 </template>
 

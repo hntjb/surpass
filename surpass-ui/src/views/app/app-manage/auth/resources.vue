@@ -4,17 +4,6 @@
     <div class="main-content">
       <!-- 左侧资源树 -->
       <el-card class="tree-card">
-        <!--        <template #header>-->
-        <!--          <div class="tree-header">-->
-        <!--            <span class="tree-title">资源结构</span>-->
-        <!--            <el-tooltip content="刷新树结构" placement="top">-->
-        <!--              <el-button class="refresh-btn" type="text" @click="loadTree">-->
-        <!--                <svg-icon icon-class="refresh"/>-->
-        <!--              </el-button>-->
-        <!--            </el-tooltip>-->
-        <!--          </div>-->
-        <!--        </template>-->
-
         <div class="tree-container">
           <el-tree
               node-key="id"
@@ -202,230 +191,20 @@
             </el-button>
           </div>
         </div>
-      </el-card>
-    </div>
-    <!-- 新增/编辑对话框 -->
-    <el-dialog
-        :title="dialogTitle"
-        v-model="dialogVisible"
-        width="1000px"
-        :before-close="handleDialogClose"
-        append-to-body
-        destroy-on-close
-    >
-      <el-form
-          ref="formRef"
-          :model="formData"
-          :rules="formRules"
-          label-width="100px"
-      >
-        <el-row :gutter="20">
-          <!-- 左列：基础信息 -->
-          <el-col :span="12">
-            <el-form-item label="资源名称" prop="name">
-              <el-input v-model="formData.name" placeholder="请输入资源名称"/>
-            </el-form-item>
-
-            <el-form-item label="资源类型">
-              <el-radio-group v-model="formData.classify">
-                <el-radio
-                    v-for="dict in resources_type"
-                    :key="dict.value"
-                    :label="dict.value"
-                >
-                  {{ dict.label }}
-                </el-radio>
-              </el-radio-group>
-            </el-form-item>
-
-            <el-form-item label="父级菜单" prop="parentId">
-              <el-tree-select
-                  clearable
-                  v-model="formData.parentId"
-                  :data="dataOptions"
-                  :props="defaultProps"
-                  check-strictly
-                  value-key="id"
-                  placeholder="请选择"
-              />
-            </el-form-item>
-
-            <el-form-item label="权限标识">
-              <el-input v-model="formData.permission" placeholder="请输入权限标识"/>
-            </el-form-item>
-
-            <el-form-item v-if="formData.classify === 'button'" label="操作类型">
-              <el-select v-model="formData.actionType" placeholder="请选择操作类型" clearable style="width: 100%">
-                <el-option
-                    v-for="dict in action_type"
-                    :key="dict.value"
-                    :label="dict.label"
-                    :value="dict.value"
-                />
-              </el-select>
-            </el-form-item>
-
-            <el-form-item label="状态" prop="status">
-              <el-switch
-                  v-model="formData.status"
-                  active-value="1"
-                  inactive-value="0"
-              />
-            </el-form-item>
-
-            <el-form-item :label="$t('jbx.text.sortIndex')" prop="sortIndex">
-              <el-input v-model="formData.sortIndex" placeholder="请输入排序值"/>
-            </el-form-item>
-            <el-form-item
-                v-if="formData.classify === 'menu'"
-                label="外部链接"
-            >
-              <el-switch
-                  v-model="formData.isFrame"
-                  active-value="y"
-                  inactive-value="n"
-              />
-            </el-form-item>
-
-            <el-form-item
-                v-if="formData.classify === 'menu'"
-                label="是否缓存"
-            >
-              <el-switch
-                  v-model="formData.isCache"
-                  active-value="y"
-                  inactive-value="n"
-              />
-            </el-form-item>
-
-            <el-form-item
-                v-if="formData.classify === 'menu'"
-                label="是否可见"
-            >
-              <el-switch
-                  v-model="formData.isVisible"
-                  active-value="y"
-                  inactive-value="n"
-              />
-            </el-form-item>
-          </el-col>
-
-          <!-- 右列：详细配置 -->
-          <el-col :span="12">
-            <el-form-item v-if="formData.classify !== 'button'" label="请求地址" prop="path">
-              <el-input v-model="formData.path" placeholder="请输入资源路径，如：/users"/>
-            </el-form-item>
-
-            <el-form-item
-                v-if="formData.classify === 'api' || formData.classify === 'openApi'"
-                label="请求方式"
-                prop="method"
-            >
-              <el-select v-model="formData.method" placeholder="请选择请求方式" clearable style="width: 100%">
-                <el-option
-                    v-for="dict in method_type"
-                    :key="dict.value"
-                    :label="dict.label"
-                    :value="dict.value"
-                />
-              </el-select>
-            </el-form-item>
-
-            <el-form-item
-                v-if="formData.classify === 'api' || formData.classify === 'menu'"
-                label="请求参数"
-            >
-              <el-input v-model="formData.params" placeholder="请输入请求参数"/>
-            </el-form-item>
-
-            <el-form-item
-                v-if="formData.classify === 'openApi'"
-                label="数据源"
-                prop="datasourceId"
-            >
-              <el-select
-                  v-model="formData.datasourceId"
-                  placeholder="请选择数据源" style="width: 100%"
-                  :loading="dataSourceLoading"
-              >
-                <el-option
-                    v-for="ds in dataSourceList"
-                    :key="ds.id"
-                    :label="ds.name"
-                    :value="ds.id"
-                />
-              </el-select>
-            </el-form-item>
-
-            <el-form-item
-                v-if="formData.classify === 'menu'"
-                label="资源样式"
-            >
-              <el-input readonly v-model="formData.resStyle" placeholder="请选择资源样式"/>
-              <icon-select
-                  style="padding-left: 0; padding-right: 0"
-                  v-model="formData.resStyle"
-                  @selected="(name) => {formData.resStyle = name}"
-              />
-            </el-form-item>
-
-            <el-form-item
-                v-if="formData.classify === 'openApi'"
-                label="是否开放"
-            >
-              <el-switch
-                  v-model="formData.isOpen"
-                  active-value="y"
-                  inactive-value="n"
-              />
-            </el-form-item>
-
-            <!--      API代理专属      -->
-            <el-form-item
-                v-if="formData.classify === 'proxy'"
-                label="代理地址"
-            >
-              <el-input v-model="formData.proxyUrl" placeholder="请输入完整的URL"/>
-            </el-form-item>
-            <el-form-item
-                v-if="formData.classify === 'proxy'"
-                label="认证类型"
-            >
-              <el-select v-model="formData.proxyAuthType" placeholder="请选择认证类型" clearable style="width: 100%">
-                <el-option
-                    v-for="dict in proxy_auth_type"
-                    :key="dict.value"
-                    :label="dict.label"
-                    :value="dict.value"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
-
-          <!-- 描述放在最下方，跨两列 -->
-          <el-col :span="24">
-            <el-form-item label="描述" prop="description">
-              <el-input
-                  v-model="formData.description"
-                  type="textarea"
-                  :rows="3"
-                  placeholder="请输入资源描述"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
-
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="handleDialogClose">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">
-            保存
-          </el-button>
-        </div>
-      </template>
-    </el-dialog>
+    </el-card>
   </div>
+  <!-- 新增/编辑对话框组件 -->
+  <ResourceDialog
+      v-model:visible="dialogVisible"
+      v-model:formData="formData"
+      :isEdit="isEdit"
+      :dataOptions="dataOptions"
+      :dataSourceList="dataSourceList"
+      :appId="props.appId"
+      @success="handleDialogSuccess"
+      @close="handleDialogClose"
+  />
+</div>
 </template>
 
 <script setup>
@@ -438,8 +217,8 @@ import modal from "@/plugins/modal";
 import {set2String} from "@/utils/index";
 import {useI18n} from "vue-i18n";
 import * as proxy from "@/utils/Dict";
-import IconSelect from "@/components/IconSelect/index.vue";
 import DictTag from "@/components/DictTag/index.vue";
+import ResourceDialog from "./components/ResourceDialog.vue";
 
 const {resources_type, action_type, method_type, proxy_auth_type} = proxy.useDict("resources_type", "action_type", "method_type", "proxy_auth_type");
 const router = useRouter()
@@ -457,7 +236,7 @@ const dataSourceLoading = ref(false)
 const dialogVisible = ref(false)
 const submitting = ref(false)
 const isEdit = ref(false)
-const formRef = ref()
+
 const resTreeRef = ref(undefined);
 const ids = ref([]);
 const selectionlist = ref([]);
@@ -508,24 +287,9 @@ const formData = reactive({
   sortIndex: '1'
 })
 
-// 表单验证规则
-const formRules = {
-  name: [
-    {required: true, message: '请输入API名称', trigger: 'blur'}
-  ],
-  path: [
-    {required: true, message: '请输入API路径', trigger: 'blur'}
-  ],
-  method: [
-    {required: true, message: '请选择HTTP方法', trigger: 'change'}
-  ],
-  datasourceId: [
-    {required: true, message: '请选择数据源', trigger: 'change'}
-  ]
-}
+
 
 // 计算属性
-const dialogTitle = computed(() => isEdit.value ? '编辑资源' : '新增资源')
 
 // 方法
 const loadApis = async () => {
@@ -590,7 +354,6 @@ const resetForm = () => {
     status: '1',
     sortIndex: '1'
   })
-  formRef.value?.clearValidate()
 }
 
 const handleDialogClose = () => {
@@ -598,30 +361,10 @@ const handleDialogClose = () => {
   resetForm()
 }
 
-const handleSubmit = async () => {
-  const handleResponse = (res, successMessage) => {
-    if (res.code === 0) {
-      dialogVisible.value = false
-      loadApis()
-      loadTree()
-    } else {
-      modal.msgError(res.message);
-    }
-    submitting.value = false
-  };
-
-  formRef?.value?.validate((valid) => {
-    if (valid) {
-      submitting.value = true
-      formData.appId = props.appId;
-
-      const operation = isEdit.value ? appResourcesApi.update : appResourcesApi.create;
-      const successMessage = isEdit.value
-          ? t('org.success.update')
-          : t('org.success.add');
-      operation(formData).then((res) => handleResponse(res, successMessage));
-    }
-  });
+const handleDialogSuccess = () => {
+  dialogVisible.value = false
+  loadApis()
+  loadTree()
 }
 
 const viewVersions = (row) => {

@@ -43,6 +43,15 @@
       <el-form-item label="正则表达式">
         <el-input v-model="ruleFormData.pattern" placeholder="例如: ^[a-zA-Z]+$" @input="handlePatternChange"/>
       </el-form-item>
+
+      <el-form-item label="默认值">
+        <el-input v-if="currentParam.type.indexOf('Array') < 0" v-model="ruleFormData.defaultValue" placeholder=""/>
+        <el-input-tag v-else
+                      v-model="ruleFormData.defaultValue"
+                      placeholder="请输入，按回车确认"
+                      aria-label=""
+        />
+      </el-form-item>
     </el-form>
 
     <template #footer>
@@ -53,8 +62,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, defineProps, defineEmits, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import {ref, reactive, computed, defineProps, defineEmits, watch} from 'vue'
+import {ElMessage} from 'element-plus'
 
 const props = defineProps({
   visible: {
@@ -77,7 +86,8 @@ const ruleFormData = reactive({
   minValue: '',
   maxValue: '',
   enumValues: '',
-  format: ''
+  format: '',
+  defaultValue: undefined
 })
 
 const visible = computed({
@@ -159,7 +169,7 @@ const checkRuleConflict = () => {
   return null
 }
 
-const parseRulesToForm = (rulesObj) => {
+const parseRulesToForm = (rulesObj, row) => {
   // 重置表单
   Object.assign(ruleFormData, {
     required: false,
@@ -169,7 +179,8 @@ const parseRulesToForm = (rulesObj) => {
     minValue: '',
     maxValue: '',
     enumValues: '',
-    format: ''
+    format: '',
+    defaultValue: undefined
   })
 
   if (!rulesObj || Object.keys(rulesObj).length === 0) return
@@ -183,6 +194,15 @@ const parseRulesToForm = (rulesObj) => {
     if (rulesObj.maxValue !== undefined) ruleFormData.maxValue = rulesObj.maxValue
     if (rulesObj.enumValues) ruleFormData.enumValues = rulesObj.enumValues.join(',')
     if (rulesObj.format) ruleFormData.format = rulesObj.format
+    if (rulesObj.defaultValue) {
+      if (row.type.indexOf("Array") >= 0 && rulesObj.defaultValue instanceof String) {
+        ruleFormData.defaultValue = []
+      } else if (row.type.indexOf("Array") < 0 && rulesObj.defaultValue instanceof Array) {
+        ruleFormData.defaultValue = undefined
+      } else {
+        ruleFormData.defaultValue = rulesObj.defaultValue
+      }
+    }
 
     // 如果有预设的格式，则尝试匹配
     if (rulesObj.pattern && !rulesObj.format) {
@@ -191,6 +211,8 @@ const parseRulesToForm = (rulesObj) => {
         ruleFormData.format = matchedFormat
       }
     }
+
+    console.log('row', row)
   } catch (e) {
     console.warn('Failed to parse rules:', e)
   }
@@ -221,7 +243,7 @@ const handleSave = () => {
     if (values.length > 0) rules.enumValues = values
   }
   if (ruleFormData.format) rules.format = ruleFormData.format
-
+  if (ruleFormData.defaultValue) rules.defaultValue = ruleFormData.defaultValue
   emit('save', rules)
   emit('update:visible', false)
 }
@@ -229,9 +251,9 @@ const handleSave = () => {
 // 当currentParam变化时，解析规则
 watch(() => props.currentParam, (newParam) => {
   if (newParam) {
-    parseRulesToForm(newParam.rules)
+    parseRulesToForm(newParam.rules, newParam)
   }
-}, { immediate: true })
+}, {immediate: true})
 </script>
 
 <style scoped>

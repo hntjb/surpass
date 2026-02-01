@@ -85,7 +85,7 @@
                       style="width: 200px;"
                       :model-value="formData.pageSizeMax"
                       :min="1"
-                      :max="9999"
+                      :max="1000"
                       placeholder=""
                       controls-position="right"
                       @update:model-value="$emit('update:formData', { ...props.formData, pageSizeMax: $event })"
@@ -126,8 +126,8 @@
                           <el-input
                               :model-value="row.name"
                               placeholder="参数名"
-                              :readonly="row.readOnly"
-                              :class="{ 'read-only-param': row.readOnly, 'input-error': !row.name }"
+                              :readonly="row.readOnly || row._sys"
+                              :class="{ 'read-only-param': row.readOnly || row._sys, 'input-error': !row.name }"
                               @input="updateParam($index, 'name', $event)"
                           />
                           <el-text v-if="!row.name" type="warning" size="small">请输入参数名</el-text>
@@ -138,7 +138,7 @@
                           <el-select
                               :model-value="row.type"
                               placeholder="选择类型"
-                              :disabled="row.readOnly"
+                              :disabled="row.readOnly || row._sys"
                               @update:model-value="updateParam($index, 'type', $event)"
                           >
                             <template v-for="(type, index) in paramInfoList" :key="index">
@@ -289,14 +289,20 @@
 
 <script setup>
 import {ref, computed, defineProps, defineEmits} from 'vue'
-import {ElMessage, ElDialog} from 'element-plus'
+import {ElMessage} from 'element-plus'
 import {apiParamTypeList} from '@/utils/enums/ApiContants.ts'
 import {json} from "@codemirror/lang-json";  //引入json语言支持
 import {sql} from "@codemirror/lang-sql";
 import CodeMirror from 'vue-codemirror6';
 import {format} from '@/api/formatter.js'
 import {Parser} from 'node-sql-parser';
-import {parseSqlParameters, checkSqlStructure, syncResponseParams, normalizeMybatisSql} from "@/utils/SqlUtil.ts"
+import {
+  parseSqlParameters,
+  checkSqlStructure,
+  syncResponseParams,
+  normalizeMybatisSql,
+  getRuleDisplayText
+} from "@/utils/SqlUtil.ts"
 import * as apiDefinitionApi from '@/api/api-service/apiDefinitionApi.ts'
 import DebugComponent from './DebugComponent.vue'
 
@@ -598,27 +604,6 @@ const formRules = {
   ]
 }
 
-const getRuleDisplayText = (rulesObj) => {
-  if (!rulesObj || Object.keys(rulesObj).length === 0) return ''
-
-  try {
-    const descriptions = []
-
-    if (rulesObj.required) descriptions.push('必填')
-    if (rulesObj.minLength !== undefined) descriptions.push(`最短${rulesObj.minLength}字符`)
-    if (rulesObj.maxLength !== undefined) descriptions.push(`最长${rulesObj.maxLength}字符`)
-    if (rulesObj.pattern) descriptions.push('正则匹配')
-    if (rulesObj.minValue !== undefined) descriptions.push(`最小值${rulesObj.minValue}`)
-    if (rulesObj.maxValue !== undefined) descriptions.push(`最大值${rulesObj.maxValue}`)
-    if (rulesObj.enumValues) descriptions.push(`枚举值(${rulesObj.enumValues.length}个)`)
-    if (rulesObj.format) descriptions.push(`${rulesObj.format}格式`)
-
-    return descriptions.join(', ') || '已配置'
-  } catch (e) {
-    return '规则格式错误'
-  }
-}
-
 const handleTest = async () => {
   try {
     // 验证表单
@@ -673,7 +658,8 @@ const addParam = () => {
     name: '',
     type: 'String',
     rules: {},
-    description: ''
+    description: '',
+    defaultValue: undefined
   }]
   console.log("newParamList ", newParamList);
   emit('update:paramList', newParamList)
@@ -932,7 +918,7 @@ const formatSql = (value) => {
 }
 
 .tab-content {
-  max-height: calc(100vh - 300px);
+  max-height: calc(100vh - 20vh);
   overflow-y: auto;
   padding-right: 10px;
 }

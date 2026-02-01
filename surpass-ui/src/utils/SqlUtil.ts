@@ -29,9 +29,10 @@ export const parseSqlParameters = (sqlTemplate: string): any[] => {
             params.push({
                 name: collection,
                 type: 'Array[String]',
-                rules: {},
+                rules: {defaultValue: []},
                 description: '',
-                readOnly: false
+                readOnly: false,
+
             });
         }
     }
@@ -57,9 +58,10 @@ export const parseSqlParameters = (sqlTemplate: string): any[] => {
         params.push({
             name: paramName,
             type: 'String',
-            rules: {},
+            rules: {defaultValue: undefined},
             description: '',
-            readOnly: false
+            readOnly: false,
+
         });
     }
 
@@ -76,9 +78,9 @@ export const parseSqlParameters = (sqlTemplate: string): any[] => {
             params.push({
                 name: collection,
                 type: 'Array<String>',
-                rules: {},
+                rules: {defaultValue: []},
                 description: '',
-                readOnly: false
+                readOnly: false,
             });
         }
     }
@@ -126,6 +128,8 @@ interface ResponseParam {
     type: string;
     description: string;
     readOnly?: boolean;
+    _sys?: boolean;
+    rules?: Object;
 }
 
 /**
@@ -237,7 +241,8 @@ export function syncResponseParams(
                 name: field,
                 type: 'String',
                 description: '',
-                readOnly: false
+                readOnly: false,
+                rules: {defaultValue: undefined}
             });
         }
     }
@@ -255,4 +260,29 @@ export function syncResponseParams(
     });
 
     return result;
+}
+
+export const getRuleDisplayText = (rulesObj: any): string => {
+    if (!rulesObj || Object.keys(rulesObj).length === 0) return ''
+    try {
+        const descriptions = []
+
+        if (rulesObj.required) descriptions.push('必填')
+        if (rulesObj.minLength !== undefined) descriptions.push(`最短${rulesObj.minLength}字符`)
+        if (rulesObj.maxLength !== undefined) descriptions.push(`最长${rulesObj.maxLength}字符`)
+        if (rulesObj.pattern) descriptions.push('正则匹配')
+        if (rulesObj.minValue !== undefined) descriptions.push(`最小值${rulesObj.minValue}`)
+        if (rulesObj.maxValue !== undefined) descriptions.push(`最大值${rulesObj.maxValue}`)
+        if (rulesObj.enumValues) descriptions.push(`枚举值(${rulesObj.enumValues.length}个)`)
+        if (rulesObj.format) descriptions.push(`${rulesObj.format}格式`)
+        if (rulesObj.defaultValue) {
+            descriptions.push(`默认值: ${rulesObj.defaultValue}`)
+        }
+
+        console.log(rulesObj, descriptions, rulesObj.defaultValue && rulesObj.defaultValue.length > 0)
+
+        return descriptions.join(', ') || '已配置'
+    } catch (e) {
+        return '规则格式错误'
+    }
 }

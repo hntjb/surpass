@@ -5,10 +5,10 @@
       class="icon-search"
       clearable
       placeholder="请输入图标名称"
+      suffix-icon="search"
       @clear="filterIcons"
       @input="filterIcons"
     >
-      <template #suffix><i class="el-icon-search el-input__icon" /></template>
     </el-input>
     <div class="icon-list">
       <div class="list-container">
@@ -26,6 +26,7 @@
 <script setup lang="ts">
 import {ref} from "vue";
 import icons from './requireIcons'
+import SvgIcon from "@/components/SvgIcon/index.vue";
 
 const props: any = defineProps({
   activeIcon: {

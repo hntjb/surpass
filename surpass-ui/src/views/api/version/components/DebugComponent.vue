@@ -77,26 +77,12 @@
                   @input="validateParam(param)"
                   :class="{ 'invalid-param': param.error }"
               />
-              <div v-else class="array-params">
-                <el-button icon="plus" type="primary" @click="param.value.push('')"></el-button>
-                <template v-for="(item, index) in param.value" :key="index">
-                  <el-input
-                      v-model="param.value[index]"
-                      :placeholder="'参数['+index+']值'"
-                      style="width: 200px;"
-                      @input="validateParam(param)"
-                      :class="{ 'invalid-param': param.error }"
-                  >
-                    <template #append>
-                      <el-button slot="append" icon="Delete" size="small"
-                                 @click="param.value.splice(index, 1)"></el-button>
-                    </template>
-                  </el-input>
-                </template>
-                <el-button v-if="param.value.length > 0" icon="DeleteFilled" type="danger" size="small"
-                           @click="param.value.length = 0">清空
-                </el-button>
-              </div>
+              <el-input-tag v-else
+                            v-model="param.value"
+                            placeholder="请输入，按回车确认"
+                            aria-label=""
+                            clearable
+              />
               <div class="param-info">
                 <el-tooltip
                     :content="getRuleDisplayText(param.rules)"
@@ -192,6 +178,7 @@ import {ref, computed, watch} from 'vue'
 import {ElMessage, ElNotification} from 'element-plus'
 import {gatewayApi} from '@/api/api-service/gatewayApi.ts'
 import {apiParamTypeList} from "@/utils/enums/ApiContants.ts";
+import {getRuleDisplayText} from "@/utils/SqlUtil.ts";
 
 // 定义props
 const props = defineProps({
@@ -393,29 +380,6 @@ const validatePattern = (param) => {
     console.error('正则表达式错误:', e)
   }
   return true
-}
-
-
-// 获取规则显示文本
-const getRuleDisplayText = (rulesObj) => {
-  if (!rulesObj || Object.keys(rulesObj).length === 0) return '无要求'
-
-  try {
-    const descriptions = []
-
-    if (rulesObj.required) descriptions.push('必填')
-    if (rulesObj.minLength !== undefined) descriptions.push(`最短${rulesObj.minLength}字符`)
-    if (rulesObj.maxLength !== undefined) descriptions.push(`最长${rulesObj.maxLength}字符`)
-    if (rulesObj.pattern) descriptions.push('正则匹配')
-    if (rulesObj.minValue !== undefined) descriptions.push(`最小值${rulesObj.minValue}`)
-    if (rulesObj.maxValue !== undefined) descriptions.push(`最大值${rulesObj.maxValue}`)
-    if (rulesObj.enumValues) descriptions.push(`枚举值(${rulesObj.enumValues.length}个)`)
-    if (rulesObj.format) descriptions.push(`${rulesObj.format}格式`)
-
-    return descriptions.join(', ') || '已配置'
-  } catch (e) {
-    return '规则格式错误'
-  }
 }
 
 const executeApi = async () => {

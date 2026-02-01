@@ -207,6 +207,7 @@ import {ref, computed, defineProps, defineEmits} from 'vue'
 import DebugComponent from "@/views/api/version/components/DebugComponent.vue";
 import {ElMessage} from "element-plus";
 import * as apiDefinitionApi from "@/api/api-service/apiDefinitionApi.ts";
+import {getRuleDisplayText} from "@/utils/SqlUtil.ts"
 
 const props = defineProps({
   visible: {
@@ -349,27 +350,6 @@ const getParamTypeTagType = (type) => {
 
 const getParamTypeObj = (type) => {
   return props.paramInfoList.find(item => item.value === type) || {label: type, value: type}
-}
-
-const getRuleDisplayText = (rulesObj) => {
-  if (!rulesObj || Object.keys(rulesObj).length === 0) return ''
-
-  try {
-    const descriptions = []
-
-    if (rulesObj.required) descriptions.push('必填')
-    if (rulesObj.minLength !== undefined) descriptions.push(`最短${rulesObj.minLength}字符`)
-    if (rulesObj.maxLength !== undefined) descriptions.push(`最长${rulesObj.maxLength}字符`)
-    if (rulesObj.pattern) descriptions.push('正则匹配')
-    if (rulesObj.minValue !== undefined) descriptions.push(`最小值${rulesObj.minValue}`)
-    if (rulesObj.maxValue !== undefined) descriptions.push(`最大值${rulesObj.maxValue}`)
-    if (rulesObj.enumValues) descriptions.push(`枚举值(${rulesObj.enumValues.length}个)`)
-    if (rulesObj.format) descriptions.push(`${rulesObj.format}格式`)
-
-    return descriptions.join(', ') || '已配置'
-  } catch (e) {
-    return '规则格式错误'
-  }
 }
 
 const formatResponseTemplate = (template) => {

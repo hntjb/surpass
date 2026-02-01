@@ -3,6 +3,7 @@ package org.dromara.surpass.web.api.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.dromara.mybatis.jpa.query.LambdaQuery;
+import org.dromara.mybatis.jpa.query.OrderBy;
 import org.dromara.surpass.entity.Message;
 import org.dromara.surpass.entity.api.ApiVersion;
 import org.dromara.surpass.enums.ApiVersionStatus;
@@ -23,6 +24,7 @@ public class ApiVersionController {
     public Message<List<ApiVersion>> getByApiId(@PathVariable String apiId) {
         LambdaQuery<ApiVersion> wrapper = new LambdaQuery<>();
         wrapper.eq(ApiVersion::getApiId, apiId);
+        wrapper.orderBy(ApiVersion::getCreatedDate, OrderBy.DESC.getOrder());
         List<ApiVersion> versions = apiVersionService.query(wrapper);
         return Message.ok(versions);
     }
