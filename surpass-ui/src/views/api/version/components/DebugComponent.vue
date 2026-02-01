@@ -105,7 +105,7 @@
           </div>
           <div class="validation-info" v-if="hasValidationErrors">
             <el-alert
-                title="参数验证失败，请检查标红的参数"
+                :title="requestParams.filter(t => t.errorMessage).map(param => param.errorMessage).join(';')"
                 type="error"
                 show-icon
                 :closable="false"
@@ -266,8 +266,6 @@ const initRequestParams = (paramDefinition) => {
 
 // 验证单个参数
 const validateParam = (param) => {
-  console.log('验证参数:', param)
-
   // 重置错误状态
   param.error = false
   param.errorMessage = ''
@@ -318,13 +316,13 @@ const validateParam = (param) => {
       break
     case 'String':
       // 字符串长度验证
-      if (param.rules.minLength !== undefined && param.value.length < param.rules.minLength) {
+      if (param.rules.minLength !== undefined && param.rules.minLength > 0 && param.value.length < param.rules.minLength) {
         param.error = true
         param.errorMessage = `字符串长度不能少于 ${param.rules.minLength} 个字符`
         return
       }
 
-      if (param.rules.maxLength !== undefined && param.value.length > param.rules.maxLength) {
+      if (param.rules.maxLength !== undefined && param.rules.maxLength > 0 && param.value.length > param.rules.maxLength) {
         param.error = true
         param.errorMessage = `字符串长度不能超过 ${param.rules.maxLength} 个字符`
         return

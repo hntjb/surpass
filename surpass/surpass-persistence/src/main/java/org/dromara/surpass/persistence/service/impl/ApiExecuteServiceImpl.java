@@ -9,6 +9,7 @@ import org.dromara.mybatis.jpa.datasource.DataSourceSwitch;
 import org.dromara.mybatis.jpa.entity.JpaPage;
 import org.dromara.surpass.entity.ApiRequestUri;
 import org.dromara.surpass.entity.api.ApiParam;
+import org.dromara.surpass.entity.api.ApiParamRule;
 import org.dromara.surpass.entity.api.ApiVersion;
 import org.dromara.surpass.entity.api.dto.ApiParamList;
 import org.dromara.surpass.entity.app.AppResources;
@@ -143,7 +144,14 @@ public class ApiExecuteServiceImpl implements ApiExecuteService {
                     // 兜底策略：未知类型直接使用原值
                     convertedValue = value;
                 }
+                // 参数校验
+                paramCheck(convertedValue, apiParam.getRules());
                 convertedParams.put(apiParam.getName(), convertedValue);
+            } else {
+                paramCheck(null, apiParam.getRules());
+                if (apiParam.getRules().getDefaultValue() != null) {
+                    convertedParams.put(apiParam.getName(), apiParam.getRules().getDefaultValue());
+                }
             }
         }
         log.debug("converted Params : {}", convertedParams);
@@ -159,4 +167,121 @@ public class ApiExecuteServiceImpl implements ApiExecuteService {
         });
     }
 
+    /**
+     * 请求参数校验
+     *
+     * @param convertedValue 转换后的参数值
+     * @param rules          规则定义
+     */
+    private void paramCheck(Object convertedValue, ApiParamRule rules) {
+        if (rules == null) {
+            return;
+        }
+
+        // 必填校验
+        if (rules.isRequired() && convertedValue == null) {
+            throw new BusinessException(40001, "参数不能为空");
+        }
+
+        // 如果值为空，不进行其他校验
+        if (convertedValue == null) {
+            return;
+        }
+
+        String valueStr = convertedValue.toString();
+
+        // 字符串长度校验
+        if (rules.getMinLength() != null || rules.getMaxLength() != null) {
+            int length = valueStr.length();
+            if (rules.getMinLength() != null && rules.getMinLength() > 0 && length < rules.getMinLength()) {
+                throw new BusinessException(40002, "参数长度不能小于" + rules.getMinLength());
+            }
+            if (rules.getMaxLength() != null && rules.getMaxLength() > 0 && length > rules.getMaxLength()) {
+                throw new BusinessException(40003, "参数长度不能大于" + rules.getMaxLength());
+            }
+        }
+
+        // 数值范围校验
+        if (rules.getMinValue() != null || rules.getMaxValue() != null) {
+            try {
+                long value = Long.parseLong(valueStr);
+                if (rules.getMinValue() != null && value < rules.getMinValue()) {
+                    throw new BusinessException(40004, "参数值不能小于" + rules.getMinValue());
+                }
+                if (rules.getMaxValue() != null && value > rules.getMaxValue()) {
+                    throw new BusinessException(40005, "参数值不能大于" + rules.getMaxValue());
+                }
+            } catch (NumberFormatException e) {
+                throw new BusinessException(40006, "参数值不是有效的数字");
+            }
+        }
+
+        // 正则表达式校验
+        if (rules.getPattern() != null && !rules.getPattern().isEmpty()) {
+            if (!valueStr.matches(rules.getPattern())) {
+                throw new BusinessException(40007, "参数格式不符合要求");
+            }
+        }
+
+        // 枚举值校验
+        if (rules.getEnumValues() != null && !rules.getEnumValues().isEmpty()) {
+            String[] enumValues = rules.getEnumValues().split(",");
+            boolean found = false;
+            for (String enumValue : enumValues) {
+                if (enumValue.trim().equals(valueStr)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                throw new BusinessException(40008, "参数值必须是: " + rules.getEnumValues());
+            }
+        }
+
+        // 格式校验（日期、邮箱等）
+        if (rules.getFormat() != null && !rules.getFormat().isEmpty()) {
+            validateFormat(valueStr, rules.getFormat());
+        }
+    }
+
+    /**
+     * 格式校验
+     */
+    private void validateFormat(String value, String format) {
+        switch (format.toLowerCase()) {
+            case "email":
+                if (!value.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                    throw new BusinessException(40009, "邮箱格式不正确");
+                }
+                break;
+            case "phone":
+                if (!value.matches("^1[3-9]\\d{9}$")) {
+                    throw new BusinessException(40010, "手机号格式不正确");
+                }
+                break;
+            case "date":
+                if (!value.matches("^\\d{4}-\\d{2}-\\d{2}$")) {
+                    throw new BusinessException(40011, "日期格式必须是YYYY-MM-DD");
+                }
+                break;
+            case "datetime":
+                if (!value.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$")) {
+                    throw new BusinessException(40012, "日期时间格式必须是YYYY-MM-DD HH:mm:ss");
+                }
+                break;
+            case "url":
+                if (!value.matches("^(https?|ftp)://[^\\s/$.?#].[^\\s]*$")) {
+                    throw new BusinessException(40013, "URL格式不正确");
+                }
+                break;
+            case "ip":
+                if (!value.matches("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")) {
+                    throw new BusinessException(40014, "IP地址格式不正确");
+                }
+                break;
+            default:
+                // 未知格式，不校验
+                break;
+        }
+    }
 }

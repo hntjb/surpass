@@ -14,4 +14,6 @@ public class ApiParam {
     String description;
     
     boolean readOnly;
+
+    boolean _sys;
 }

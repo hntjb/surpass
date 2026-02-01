@@ -268,8 +268,8 @@ export const getRuleDisplayText = (rulesObj: any): string => {
         const descriptions = []
 
         if (rulesObj.required) descriptions.push('必填')
-        if (rulesObj.minLength !== undefined) descriptions.push(`最短${rulesObj.minLength}字符`)
-        if (rulesObj.maxLength !== undefined) descriptions.push(`最长${rulesObj.maxLength}字符`)
+        if (rulesObj.minLength !== undefined && rulesObj.minLength > 0) descriptions.push(`最短${rulesObj.minLength}字符`)
+        if (rulesObj.maxLength !== undefined && rulesObj.maxLength > 0) descriptions.push(`最长${rulesObj.maxLength}字符`)
         if (rulesObj.pattern) descriptions.push('正则匹配')
         if (rulesObj.minValue !== undefined) descriptions.push(`最小值${rulesObj.minValue}`)
         if (rulesObj.maxValue !== undefined) descriptions.push(`最大值${rulesObj.maxValue}`)
@@ -278,9 +278,6 @@ export const getRuleDisplayText = (rulesObj: any): string => {
         if (rulesObj.defaultValue) {
             descriptions.push(`默认值: ${rulesObj.defaultValue}`)
         }
-
-        console.log(rulesObj, descriptions, rulesObj.defaultValue && rulesObj.defaultValue.length > 0)
-
         return descriptions.join(', ') || '已配置'
     } catch (e) {
         return '规则格式错误'
