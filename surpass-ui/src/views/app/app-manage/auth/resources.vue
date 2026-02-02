@@ -201,6 +201,7 @@
       :dataOptions="dataOptions"
       :dataSourceList="dataSourceList"
       :appId="props.appId"
+      :contextPath="contextPath"
       @success="handleDialogSuccess"
       @close="handleDialogClose"
   />
@@ -219,6 +220,7 @@ import {useI18n} from "vue-i18n";
 import * as proxy from "@/utils/Dict";
 import DictTag from "@/components/DictTag/index.vue";
 import ResourceDialog from "./components/ResourceDialog.vue";
+import {getApp} from "@/api/api-service/apps";
 
 const {resources_type, action_type, method_type, proxy_auth_type} = proxy.useDict("resources_type", "action_type", "method_type", "proxy_auth_type");
 const router = useRouter()
@@ -251,6 +253,8 @@ const defaultProps = ref({
   children: "children",
   label: "name"
 });
+
+const contextPath = ref("");
 
 const data = reactive({
   queryParams: {
@@ -300,6 +304,11 @@ const loadApis = async () => {
       total.value = res.data.records;
     }
   })
+
+  getApp(props.appId).then((res) => {
+    contextPath.value= res.data.contextPath;
+    console.log("contextPath "+contextPath.value);
+  });
 }
 
 const loadDataSources = async () => {
@@ -368,7 +377,7 @@ const handleDialogSuccess = () => {
 }
 
 const viewVersions = (row) => {
-  router.push(`/api/Version?apiId=${row.id}`)
+  router.push(`/api/Version?apiId=${row.id}&appId=${props.appId}`)
 }
 
 const deleteApi = async (row) => {

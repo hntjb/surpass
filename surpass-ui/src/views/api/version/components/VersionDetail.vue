@@ -29,7 +29,24 @@
               <span>基本信息</span>
             </div>
           </template>
-          <el-descriptions :column="2" border>
+            <el-descriptions :column="2" border>
+              <el-descriptions-item label="API名称">
+                {{ apiDefinition.name }}
+              </el-descriptions-item>
+              <el-descriptions-item label="所属应用">
+                <el-tag>{{ apiDefinition.belongApp }}</el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item label="方法">
+                <el-tag>
+                  {{ apiDefinition.method }}
+                </el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item label="上下文">
+                <el-tag>{{ apiDefinition.contextPath }}</el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item label="路径">
+                <el-tag>{{ apiDefinition.path }}</el-tag>
+              </el-descriptions-item>
             <el-descriptions-item label="版本号">
               <span class="version-number">v{{ currentVersion.version }}</span>
             </el-descriptions-item>
@@ -218,6 +235,7 @@ const props = defineProps({
     type: Object,
     default: null
   },
+  apiDefinition:{type: Object,default:{}},
   paramInfoList: {
     type: Array,
     default: () => [

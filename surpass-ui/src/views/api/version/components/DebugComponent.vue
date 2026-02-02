@@ -6,22 +6,23 @@
         <el-descriptions-item label="API名称">
           {{ apiInfo.name }}
         </el-descriptions-item>
-        <el-descriptions-item label="路径">
-          <el-tag>{{ apiInfo.path }}</el-tag>
+        <el-descriptions-item label="所属应用">
+          <el-tag>{{ apiInfo.belongApp }}</el-tag>
+        </el-descriptions-item>
+        
+        <el-descriptions-item label="当前版本">
+          <el-tag type="success">v{{ versionInfo.version }}</el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="方法">
           <el-tag :type="getMethodTagType(apiInfo.method)">
             {{ apiInfo.method }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="当前版本">
-          <el-tag type="success">v{{ versionInfo.version }}</el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="所属应用">
-          <el-tag>{{ apiInfo.belongApp }}</el-tag>
-        </el-descriptions-item>
         <el-descriptions-item label="应用上下文路径">
           <el-tag>{{ apiInfo.contextPath }}</el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="路径">
+          <el-tag>{{ apiInfo.path }}</el-tag>
         </el-descriptions-item>
       </el-descriptions>
     </div>

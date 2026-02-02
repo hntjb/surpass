@@ -207,7 +207,9 @@
                   v-model="formData.path"
                   placeholder="请输入资源路径，如：/users"
                   clearable
-              />
+              >
+                <template #prepend>{{props.contextPath}}</template>
+              </el-input>
             </el-form-item>
           </el-col>
 
@@ -358,6 +360,7 @@ import * as proxy from "@/utils/Dict";
 import IconSelect from "@/components/IconSelect/index.vue";
 import SvgIcon from "@/components/SvgIcon/index.vue";
 
+
 const {
   resources_type,
   action_type,
@@ -389,9 +392,15 @@ const props = defineProps({
   },
   appId: {
     type: String,
-    default: undefined
+    default: 'appId'
+  },
+  contextPath: {
+    type: String,
+    default: 'contextPath'
   }
 });
+
+const contextPath = ref("");
 
 const emit = defineEmits(['update:visible', 'update:formData', 'success', 'close']);
 
@@ -428,6 +437,7 @@ const dialogVisible = computed({
     return props.visible
   },
   set(value) {
+    
     emit('update:visible', value)
   }
 })

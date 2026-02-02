@@ -32,6 +32,31 @@
             :rules="formRules"
             label-width="100px"
         >
+           <!-- API信息 -->
+                <div class="api-info" v-if="apiDefinition">
+                  <el-descriptions :column="2" border>
+                    <el-descriptions-item label="API名称">
+                      {{ apiDefinition.name }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="所属应用">
+                      <el-tag>{{ apiDefinition.belongApp  }}</el-tag>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="当前版本">
+                      <el-tag type="success">v{{ formData.version }}</el-tag>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="方法">
+                      <el-tag>
+                        {{ apiDefinition.method }}
+                      </el-tag>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="上下文">
+                      <el-tag>{{ apiDefinition.contextPath }}</el-tag>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="路径">
+                      <el-tag>{{ apiDefinition.path }}</el-tag>
+                    </el-descriptions-item>
+                  </el-descriptions>
+                </div>
           <el-tabs v-model="activeTab" class="form-tabs">
             <el-tab-pane label="基础配置" name="basic">
               <div class="tab-content">
@@ -331,6 +356,7 @@ const props = defineProps({
       rateLimit: 0
     })
   },
+  apiDefinition:{type: Object,default:{}},
   paramList: {
     type: Array,
     default: () => []
@@ -374,6 +400,7 @@ const drawerVisible = computed({
     emit('update:visible', value)
   }
 })
+
 
 // 测试相关的数据
 const apiInfoForTest = ref(null)
@@ -615,6 +642,7 @@ const handleTest = async () => {
       return
     }
 
+    console.log('formData ', JSON.stringify(props.formData))
     // 加载API信息
     ElMessage.info('正在加载API信息...')
     const apiResponse = await apiDefinitionApi.getById(props.formData.apiId)
@@ -638,6 +666,8 @@ const handleTest = async () => {
       })))
     }
 
+    console.log('apiInfoForTest ', JSON.stringify(apiInfoForTest))
+    
     // 显示测试弹框
     testDialogVisible.value = true
 

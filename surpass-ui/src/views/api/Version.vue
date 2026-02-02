@@ -16,12 +16,32 @@
           @refresh="refreshList"
       />
 
+      
       <!-- 版本管理区域 -->
       <div v-if="selectedApiId" class="version-management">
         <!-- 统计信息和操作栏 -->
         <div class="management-header">
           <!-- 统计卡片 -->
           <StatisticsCards :statistics="versionStatistics"/>
+        </div>
+         <!-- API信息 -->
+        <div class="api-info" v-if="apiDefinition">
+          <el-descriptions :column="2" border>
+            <el-descriptions-item label="API名称">
+              {{ apiDefinition.name }}
+            </el-descriptions-item>
+            <el-descriptions-item label="所属应用">
+              <el-tag>{{ apiDefinition.belongApp }}</el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="方法">
+              <el-tag>
+                {{ apiDefinition.method }}
+              </el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="路径">
+              <el-tag>{{ apiDefinition.contextPath+apiDefinition.path }}</el-tag>
+            </el-descriptions-item>
+          </el-descriptions>
         </div>
 
         <!-- 版本列表 -->
@@ -51,6 +71,7 @@
         :visible="drawerVisible"
         :is-edit="isEdit"
         :form-data="formData"
+        :apiDefinition="apiDefinition"
         :param-list="paramList"
         :response-list="responseList"
         :param-info-list="paramInfoList"
@@ -77,6 +98,7 @@
     <VersionDetail
         :visible="detailDialogVisible"
         :current-version="currentVersion"
+        :apiDefinition="apiDefinition"
         :param-info-list="paramInfoList"
         @update:visible="detailDialogVisible = $event"
     />
@@ -116,6 +138,7 @@ const apiList = ref([])
 const versionList = ref([])
 const currentVersion = ref(null)
 const versionStatistics = ref(null)
+const apiDefinition = ref(null)
 
 const paramInfoList = ref([...apiParamTypeList])
 
@@ -176,13 +199,16 @@ const loadVersions = async () => {
 
   try {
     loading.value = true
-    const [versionsResponse, statisticsResponse] = await Promise.all([
+    const [versionsResponse, statisticsResponse,apiDefinitionResponse] = await Promise.all([
       apiVersionApi.getByApiId(selectedApiId.value),
-      apiVersionApi.getVersionStatistics(selectedApiId.value)
+      apiVersionApi.getVersionStatistics(selectedApiId.value),
+      apiDefinitionApi.getById(selectedApiId.value)
     ])
-
+    
     versionList.value = versionsResponse.data || []
     versionStatistics.value = statisticsResponse.data || null
+    apiDefinition.value = apiDefinitionResponse.data;
+    console.log("apiDefinition "+JSON.stringify(apiDefinition))
   } catch (error) {
     ElMessage.error('加载版本列表失败')
     console.error('加载版本列表失败:', error)
