@@ -29,11 +29,13 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, onUnmounted} from "vue";
+import {ref, onMounted, onUnmounted, watch} from "vue";
 import {parseTime} from "@/utils/Surpass";
+import {useRoute} from "vue-router";
 
 const version = ref(__APP_VERSION__);
 const time = ref(parseTime(new Date(), "{y}"));
+const route = useRoute();
 
 const visible = ref(false);
 let hideTimer: number | null = null;
@@ -60,7 +62,24 @@ const onMouseMove = (e: MouseEvent) => {
 };
 
 onMounted(() => {
-  window.addEventListener("mousemove", onMouseMove);
+  // 检查当前是否是登录页面
+  if (route.path === '/login') {
+    visible.value = true;
+  } else {
+    window.addEventListener("mousemove", onMouseMove);
+  }
+});
+
+// 监听路由变化
+watch(() => route.path, (newPath) => {
+  if (newPath === '/login') {
+    visible.value = true;
+    // 移除鼠标移动监听
+    window.removeEventListener("mousemove", onMouseMove);
+  } else {
+    // 添加鼠标移动监听
+    window.addEventListener("mousemove", onMouseMove);
+  }
 });
 
 onUnmounted(() => {
@@ -80,7 +99,7 @@ onUnmounted(() => {
   padding: 10px 0;
   border-top: 1px solid #e5e5e5;
   background: #fff;
-  z-index: 9999;
+  z-index: 99;
   transition: transform 0.3s ease, opacity 0.3s ease;
 
   a {
