@@ -232,10 +232,10 @@ load();
   i {
     font-size: 14px;
   }
-  //控制字大小
-  ::v-deep  {
-    font-size: 14px;
-  }
+}
+//控制字大小
+::v-deep(.button-account)  {
+  font-size: 14px;
 }
 
 /*按钮悬浮*/
