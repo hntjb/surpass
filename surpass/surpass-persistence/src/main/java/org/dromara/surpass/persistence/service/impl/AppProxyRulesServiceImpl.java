@@ -37,8 +37,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AppProxyRulesServiceImpl extends JpaServiceImpl<AppProxyRulesMapper, AppProxyRules> implements AppProxyRulesService {
 
-    private final AppProxyRulesMapper appProxyRulesMapper;
-
     @Override
     public Message<String> create(AppProxyRulesChangeDto dto) {
         AppProxyRules appProxyRules = BeanUtil.copyProperties(dto, AppProxyRules.class);
@@ -65,5 +63,11 @@ public class AppProxyRulesServiceImpl extends JpaServiceImpl<AppProxyRulesMapper
         dto.build();
         JpaPageResults<AppProxyRules> jpaPageResults = (JpaPageResults<AppProxyRules>) this.buildPageResults(dto, getMapper().pageList(dto));
         return Message.ok(jpaPageResults);
+    }
+
+    @Override
+    public Message<List<AppProxyRules>> getAll(AppProxyRules dto) {
+        List<AppProxyRules> all = getMapper().getAll(dto);
+        return Message.ok(all);
     }
 }

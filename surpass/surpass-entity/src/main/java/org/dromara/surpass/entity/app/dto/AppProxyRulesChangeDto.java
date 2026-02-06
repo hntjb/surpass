@@ -15,6 +15,8 @@ public class AppProxyRulesChangeDto {
 
     private String proxyRuleId;
 
+    private String alias;
+
     @NotEmpty(message = "所属应用不能为空", groups = {AddGroup.class, EditGroup.class})
     private String appId;
 

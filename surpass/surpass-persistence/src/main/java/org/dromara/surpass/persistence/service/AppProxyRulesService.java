@@ -35,4 +35,6 @@ public interface AppProxyRulesService extends IJpaService<AppProxyRules> {
     Message<String> deleteProxyRules(List<String> ids);
 
     Message<JpaPageResults<AppProxyRules>> pageList(AppProxyRulesPageDto dto);
+
+    Message<List<AppProxyRules>> getAll(AppProxyRules dto);
 }

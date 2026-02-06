@@ -34,7 +34,7 @@
               style="width: 200px"
           >
             <el-option
-                v-for="item in protocolTypes"
+                v-for="item in proxy_auth_type"
                 :key="item.value"
                 :label="item.label"
                 :value="item.value"
@@ -83,11 +83,10 @@
             width="55"
             align="center"
         />
-
+        <el-table-column prop="alias" label="别名"></el-table-column>
         <el-table-column
             prop="protocolType"
             label="协议类型"
-            width="140"
         >
           <template #default="{ row }">
             <el-tag>
@@ -96,17 +95,16 @@
           </template>
         </el-table-column>
 
-        <el-table-column
-            prop="proxyRuleId"
-            label="关联资源"
-            min-width="180"
-            show-overflow-tooltip
-        />
+        <!--        <el-table-column-->
+        <!--            prop="proxyRuleId"-->
+        <!--            label="关联资源"-->
+        <!--            min-width="180"-->
+        <!--            show-overflow-tooltip-->
+        <!--        />-->
 
         <el-table-column
             prop="status"
             label="状态"
-            width="100"
         >
           <template #default="{ row }">
             <el-tag
@@ -120,35 +118,21 @@
         <el-table-column
             prop="createdDate"
             label="创建时间"
-            width="180"
         />
 
         <el-table-column
             label="操作"
-            width="140"
+            width="120"
             fixed="right"
             align="center"
         >
           <template #default="{ row }">
-
-            <el-button
-                type="primary"
-                link
-                size="small"
-                @click="handleEdit(row)"
-            >
-              编辑
-            </el-button>
-
-            <el-button
-                type="danger"
-                link
-                size="small"
-                @click="handleDelete(row)"
-            >
-              删除
-            </el-button>
-
+            <el-tooltip content="编辑">
+              <el-button type="primary" link icon="Edit" @click="handleEdit(row)"></el-button>
+            </el-tooltip>
+            <el-tooltip content="删除">
+              <el-button type="danger" icon="Delete" link @click="handleDelete(row)"></el-button>
+            </el-tooltip>
           </template>
         </el-table-column>
 
@@ -190,7 +174,7 @@
               style="width: 100%"
           >
             <el-option
-                v-for="item in protocolTypes"
+                v-for="item in proxy_auth_type"
                 :key="item.value"
                 :label="item.label"
                 :value="item.value"
@@ -198,12 +182,13 @@
           </el-select>
         </el-form-item>
 
-<!--        <el-form-item label="关联资源">-->
-<!--          <el-input-->
-<!--              v-model="formData.proxyRuleId"-->
-<!--              placeholder="资源ID（可为空）"-->
-<!--          />-->
-<!--        </el-form-item>-->
+        <el-form-item label="别名">
+          <el-input
+              v-model="formData.alias"
+              placeholder="请输入"
+              autocomplete="off"
+          />
+        </el-form-item>
 
         <el-form-item label="配置" required>
           <ProxyConfig
@@ -245,6 +230,7 @@ import {ref, reactive, watch, computed} from 'vue'
 import {ElMessage, ElMessageBox} from 'element-plus'
 import * as proxyRuleApi from '@/api/app/app-proxy-rules.ts'
 import ProxyConfig from '@/components/ProxyConfig/index.vue'
+import * as proxy from "@/utils/Dict.ts";
 
 /* Props */
 const props = defineProps({
@@ -253,6 +239,7 @@ const props = defineProps({
     required: true
   }
 })
+const {proxy_auth_type} = proxy.useDict("proxy_auth_type");
 
 /* 状态 */
 const loading = ref(false)
@@ -268,6 +255,7 @@ const ids = ref([])
 /* 查询 */
 const queryParams = reactive({
   appId: '',
+  alias: '',
   protocolType: '',
   status: '',
   pageNumber: 1,
@@ -278,36 +266,16 @@ const queryParams = reactive({
 const formData = reactive({
   id: null,
   appId: '',
+  alias: '',
   proxyRuleId: '',
   protocolType: '',
   config: '',
   status: '1'
 })
 
-/* 协议类型字典 */
-const protocolTypes = [
-  {label: 'API Key', value: 'api_key'},
-  {label: 'OAuth2', value: 'oauth2'},
-  {label: 'JWT', value: 'jwt'},
-  {label: 'Basic Auth', value: 'basic_auth'},
-  {label: 'Bearer Token', value: 'bearer_token'},
-  {label: 'Digest Auth', value: 'digest_auth'},
-  {label: '自定义', value: 'custom'}
-]
-
-/* ================== 方法 ================= */
-
 function formatProtocol(val) {
-  const map = {
-    api_key: 'API Key',
-    oauth2: 'OAuth2',
-    jwt: 'JWT',
-    basic_auth: 'Basic',
-    bearer_token: 'Bearer',
-    digest_auth: 'Digest',
-    custom: '自定义'
-  }
-  return map[val] || val
+  const item = proxy_auth_type.value.find(i => i.value === val)
+  return (item && item.label) || val
 }
 
 /* 加载数据 */
@@ -333,8 +301,9 @@ function handleAdd() {
   Object.assign(formData, {
     id: null,
     appId: props.appId,
+    alias: '',
     proxyRuleId: '',
-    protocolType: '',
+    protocolType: 'api_key',
     config: '',
     status: '1'
   })
@@ -349,6 +318,7 @@ function handleEdit(row) {
   Object.assign(formData, {
     id: row.id,
     appId: row.appId,
+    alias: row.alias,
     proxyRuleId: row.proxyRuleId,
     protocolType: row.protocolType,
     config: row.config || '',

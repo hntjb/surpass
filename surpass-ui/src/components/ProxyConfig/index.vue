@@ -8,6 +8,7 @@
             v-model="configData.apiKey"
             placeholder="请输入API Key"
             show-password
+            autocomplete="off"
           />
         </el-form-item>
         

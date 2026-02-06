@@ -24,6 +24,14 @@ export function pageProxyRules(params: any): any {
     })
 }
 
+export function getAllProxyRules(params: any): any {
+    return request({
+        url: '/app-proxy/all',
+        method: 'get',
+        params: params
+    })
+}
+
 export function deleteData(id : any): any {
     return request({
         url: `/app-proxy/delete?ids=` + id,

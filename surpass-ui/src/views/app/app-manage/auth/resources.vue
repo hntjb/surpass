@@ -200,6 +200,7 @@
       :isEdit="isEdit"
       :dataOptions="dataOptions"
       :dataSourceList="dataSourceList"
+      :proxySourceList="proxySourceList"
       :appId="props.appId"
       :contextPath="contextPath"
       @success="handleDialogSuccess"
@@ -221,6 +222,7 @@ import * as proxy from "@/utils/Dict";
 import DictTag from "@/components/DictTag/index.vue";
 import ResourceDialog from "./components/ResourceDialog.vue";
 import {getApp} from "@/api/api-service/apps";
+import * as appProxyApis from "@/api/app/app-proxy-rules.ts";
 
 const {resources_type, action_type, method_type, proxy_auth_type} = proxy.useDict("resources_type", "action_type", "method_type", "proxy_auth_type");
 const router = useRouter()
@@ -245,6 +247,7 @@ const selectionlist = ref([]);
 const apiList = ref([])
 const total = ref(0);
 const dataSourceList = ref([])
+const proxySourceList = ref([])
 const dataOptions = ref([]);
 const dataOptionsMenu = ref([]);
 const treeData = ref([]);//当前选中节点
@@ -290,10 +293,6 @@ const formData = reactive({
   status: '1',
   sortIndex: '1'
 })
-
-
-
-// 计算属性
 
 // 方法
 const loadApis = async () => {
@@ -519,19 +518,12 @@ const getResourceIcon = (classify, icon) => {
   return icon || map[classify] || 'resource'
 }
 
-const getSelectedNodeName = () => {
-  if (!queryParams.value.parentId) return '全部'
-  const findNode = (nodes, id) => {
-    for (const node of nodes) {
-      if (node.id === id) return node.name
-      if (node.children) {
-        const found = findNode(node.children, id)
-        if (found) return found
-      }
-    }
-    return null
-  }
-  return findNode(dataOptions.value, queryParams.value.parentId) || '未知节点'
+const getProxyList = () => {
+  appProxyApis.getAllProxyRules({
+    appId: props.appId
+  }).then(res => {
+    proxySourceList.value = res.data
+  })
 }
 
 
@@ -543,6 +535,7 @@ watch(
         loadApis()
         loadTree();
         loadDataSources()
+        getProxyList()
       }
     },
     {immediate: true}

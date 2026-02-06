@@ -14,7 +14,8 @@ public enum ResourceClassify {
     OPEN_API("openApi"),
     BUTTON("button"),
     MENU("menu"),
-    API("api");
+    API("api"),
+    PROXY("proxy");
 
     private final String code;
 

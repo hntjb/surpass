@@ -10,4 +10,5 @@ import java.util.List;
 @Mapper
 public interface AppProxyRulesMapper extends IJpaMapper<AppProxyRules> {
     List<AppProxyRules> pageList(AppProxyRulesPageDto dto);
+    List<AppProxyRules> getAll(AppProxyRules dto);
 }

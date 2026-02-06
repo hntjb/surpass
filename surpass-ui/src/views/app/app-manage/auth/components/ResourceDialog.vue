@@ -208,13 +208,13 @@
                   placeholder="请输入资源路径，如：/users"
                   clearable
               >
-                <template #prepend>{{props.contextPath}}</template>
+                <template #prepend>{{ props.contextPath }}</template>
               </el-input>
             </el-form-item>
           </el-col>
 
           <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12"
-                  v-if="formData.classify === 'api' || formData.classify === 'openApi'">
+                  v-if="formData.classify === 'api' || formData.classify === 'openApi' || formData.classify === 'proxy'">
             <el-form-item label="请求方式" prop="method">
               <el-select
                   v-model="formData.method"
@@ -275,32 +275,34 @@
 
           <!-- API代理专属 -->
           <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-if="formData.classify === 'proxy'">
-            <el-form-item label="代理地址">
-              <el-input
-                  v-model="formData.proxyUrl"
-                  placeholder="请输入完整的URL"
-                  clearable
-              />
-            </el-form-item>
-          </el-col>
-
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-if="formData.classify === 'proxy'">
-            <el-form-item label="认证类型">
+            <el-form-item label="认证协议" prop="proxyId">
               <el-select
-                  v-model="formData.proxyAuthType"
-                  placeholder="请选择认证类型"
+                  v-model="formData.datasourceId"
+                  placeholder="请选择认证协议"
                   clearable
                   class="full-width"
+                  @change="(val) => {formData.proxyId = val}"
               >
                 <el-option
-                    v-for="dict in proxy_auth_type"
-                    :key="dict.value"
-                    :label="dict.label"
-                    :value="dict.value"
+                    v-for="dict in proxySourceList"
+                    :key="dict.id"
+                    :label="dict.alias"
+                    :value="dict.id"
                 />
               </el-select>
             </el-form-item>
           </el-col>
+          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-if="formData.classify === 'proxy'">
+            <el-form-item label="代理地址" prop="proxyUrl">
+              <el-input
+                  v-model="formData.params"
+                  placeholder="请输入完整的URL"
+                  clearable
+                  @input="(val) => {formData.proxyUrl = val}"
+              />
+            </el-form-item>
+          </el-col>
+
         </el-row>
       </el-card>
 
@@ -352,7 +354,7 @@
 </template>
 
 <script setup>
-import {ref, reactive, computed, toRefs, defineProps, defineEmits} from 'vue'
+import {ref, reactive, computed, toRefs, defineProps, defineEmits, onMounted} from 'vue'
 import * as appResourcesApi from '@/api/app/resources'
 import modal from "@/plugins/modal";
 import {useI18n} from "vue-i18n";
@@ -364,9 +366,8 @@ import SvgIcon from "@/components/SvgIcon/index.vue";
 const {
   resources_type,
   action_type,
-  method_type,
-  proxy_auth_type
-} = proxy.useDict("resources_type", "action_type", "method_type", "proxy_auth_type");
+  method_type
+} = proxy.useDict("resources_type", "action_type", "method_type");
 const {t} = useI18n()
 
 const props = defineProps({
@@ -387,6 +388,10 @@ const props = defineProps({
     default: () => []
   },
   dataSourceList: {
+    type: Array,
+    default: () => []
+  },
+  proxySourceList: {
     type: Array,
     default: () => []
   },
@@ -427,6 +432,12 @@ const formRules = {
   ],
   datasourceId: [
     {required: true, message: '请选择数据源', trigger: 'change'}
+  ],
+  proxyId: [
+    {required: true, message: '请选择代理协议', trigger: 'change'}
+  ],
+  proxyUrl: [
+    {required: true, message: '请输入代理地址', trigger: 'change'}
   ]
 }
 
@@ -437,7 +448,7 @@ const dialogVisible = computed({
     return props.visible
   },
   set(value) {
-    
+
     emit('update:visible', value)
   }
 })
@@ -474,6 +485,7 @@ const handleSubmit = async () => {
     }
   });
 }
+
 </script>
 
 <style scoped lang="scss">

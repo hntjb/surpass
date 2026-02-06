@@ -32,6 +32,11 @@ public class AppProxyRuleController {
         return appProxyRulesService.pageList(dto);
     }
 
+    @GetMapping("/all")
+    public Message<List<AppProxyRules>> all(@ParameterObject AppProxyRules dto) {
+        return appProxyRulesService.getAll(dto);
+    }
+
     @PutMapping("/update")
     public Message<String> update(@Validated(value = EditGroup.class) @RequestBody AppProxyRulesChangeDto dto) {
         return appProxyRulesService.updateProxyRules(dto);

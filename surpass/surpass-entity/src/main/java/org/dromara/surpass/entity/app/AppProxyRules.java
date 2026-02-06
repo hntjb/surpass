@@ -31,6 +31,9 @@ public class AppProxyRules extends JpaEntity implements Serializable {
     @GeneratedValue
     String id;
 
+    @Column
+    private String alias;
+
     /**
      * 关联的代理资源ID，为空则代表通用配置
      */

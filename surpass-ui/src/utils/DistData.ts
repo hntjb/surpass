@@ -2488,18 +2488,12 @@ const distData: DistData = {
         },
     ],
     "proxy_auth_type": [
-        {
-            label: 'Base',
-            value: 'BASE',
-        },
-        {
-            label: 'JWT',
-            value: 'JWT',
-        },
-        {
-            label: 'OAuth2',
-            value: 'OAUTH2',
-        }
+        {label: 'API Key', value: 'api_key'},
+        {label: 'OAuth2', value: 'oauth2'},
+        {label: 'JWT', value: 'jwt'},
+        {label: 'Basic Auth', value: 'basic_auth'},
+        {label: 'Bearer Token', value: 'bearer_token'},
+        {label: 'Digest Auth', value: 'digest_auth'}
     ]
 }
 
