@@ -1,6 +1,9 @@
 package org.dromara.surpass.web.api.controller;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.Paths;
@@ -19,10 +22,16 @@ import io.swagger.v3.oas.models.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.dromara.mybatis.jpa.query.LambdaQuery;
+import org.dromara.surpass.entity.api.ApiParam;
+import org.dromara.surpass.entity.api.ApiParamRule;
 import org.dromara.surpass.entity.api.ApiVersion;
+import org.dromara.surpass.entity.api.dto.ApiParamList;
+import org.dromara.surpass.entity.app.App;
 import org.dromara.surpass.entity.app.AppResources;
 import org.dromara.surpass.persistence.service.ApiVersionService;
 import org.dromara.surpass.persistence.service.AppResourcesService;
+import org.dromara.surpass.persistence.service.AppService;
+import org.dromara.surpass.util.JsonUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,6 +51,7 @@ import java.util.regex.Pattern;
 public class SwaggerApiController {
 
     private final AppResourcesService appResourcesService;
+    private final AppService appService;
     private final ApiVersionService apiVersionService;
 
     @Value("${server.port:2154}")
@@ -61,12 +71,11 @@ public class SwaggerApiController {
      * 完全按照springdoc-api-res-demo.json的结构
      */
     @GetMapping(value = "/dynamic-apis")
-    public OpenAPI getDynamicApiDocs(HttpServletRequest request) {
+    public Object getDynamicApiDocs(HttpServletRequest request) {
+        ObjectMapper jsonMapper = new ObjectMapper();
+        jsonMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
         OpenAPI openAPI = new OpenAPI();
-
-        // 1. 设置OpenAPI版本 - 与demo文件一致
-        openAPI.setOpenapi("3.0.1");
-
         // 2. 设置基本信息 - 与demo文件格式一致
         Info info = new Info()
                 .title(applicationTitle)
@@ -83,8 +92,8 @@ public class SwaggerApiController {
         // 3. 添加服务器信息 - 与demo文件格式一致
         List<Server> servers = new ArrayList<>();
         Server server = new Server();
-        server.setUrl("http://127.0.0.1:" + serverPort + contextPath);
-        server.setDescription("Generated server url");
+        server.setUrl("http://127.0.0.1:" + serverPort + contextPath + "/api");
+        server.setDescription("测试服务");
         servers.add(server);
         openAPI.setServers(servers);
 
@@ -106,201 +115,30 @@ public class SwaggerApiController {
 
         // 7. 设置组件 - 完全按照demo文件的结构
         Components components = new Components();
-
-        // 7.1 安全方案
         SecurityScheme apiKey = new SecurityScheme()
                 .type(SecurityScheme.Type.APIKEY)
                 .name("maxkey")
                 .in(SecurityScheme.In.HEADER);
         components.addSecuritySchemes("apiKey", apiKey);
-
-        // 7.2 Schema定义 - 完全按照demo文件
         addDemoSchemas(components);
-
         openAPI.setComponents(components);
 
-        return openAPI;
+        try {
+            String resStr = jsonMapper.writeValueAsString(openAPI);
+            return jsonMapper.readTree(resStr);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * 添加demo文件中的Schema定义
      */
     private void addDemoSchemas(Components components) {
-        // 1. ApiVersion Schema
-        ObjectSchema apiVersionSchema = new ObjectSchema();
-        apiVersionSchema.addRequiredItem("apiId");
-        apiVersionSchema.addRequiredItem("sqlTemplate");
-        apiVersionSchema.addRequiredItem("status");
-        apiVersionSchema.addRequiredItem("supportsPaging");
-        apiVersionSchema.addRequiredItem("version");
-
-        apiVersionSchema.addProperty("id", new StringSchema());
-        apiVersionSchema.addProperty("apiId", new StringSchema());
-        apiVersionSchema.addProperty("version", new IntegerSchema().format("int32"));
-        apiVersionSchema.addProperty("sqlTemplate", new StringSchema().minLength(1));
-        apiVersionSchema.addProperty("paramDefinition", new StringSchema());
-        apiVersionSchema.addProperty("responseTemplate", new StringSchema());
-        apiVersionSchema.addProperty("status", new IntegerSchema().format("int32"));
-        apiVersionSchema.addProperty("description", new StringSchema());
-        apiVersionSchema.addProperty("supportsPaging", new IntegerSchema().format("int32"));
-        apiVersionSchema.addProperty("pageSizeMax", new IntegerSchema().format("int32"));
-        apiVersionSchema.addProperty("rateLimit", new IntegerSchema().format("int32"));
-        apiVersionSchema.addProperty("deleted", new StringSchema());
-        apiVersionSchema.addProperty("createdBy", new StringSchema());
-        apiVersionSchema.addProperty("createdDate", new StringSchema().format("date-time"));
-        apiVersionSchema.addProperty("modifiedBy", new StringSchema());
-        apiVersionSchema.addProperty("modifiedDate", new StringSchema().format("date-time"));
-        components.addSchemas("ApiVersion", apiVersionSchema);
-
-        // 2. MessageApiVersion Schema
-        ObjectSchema messageApiVersionSchema = new ObjectSchema();
-        messageApiVersionSchema.addProperty("code", new IntegerSchema().format("int32"));
-        messageApiVersionSchema.addProperty("message", new StringSchema());
-        messageApiVersionSchema.addProperty("timestamp", new StringSchema().format("date-time"));
-        messageApiVersionSchema.addProperty("data", new Schema<>().$ref("#/components/schemas/ApiVersion"));
-        components.addSchemas("MessageApiVersion", messageApiVersionSchema);
-
-        // 3. DataSource Schema
-        ObjectSchema dataSourceSchema = new ObjectSchema();
-        dataSourceSchema.addRequiredItem("driverClassName");
-        dataSourceSchema.addRequiredItem("name");
-        dataSourceSchema.addRequiredItem("password");
-        dataSourceSchema.addRequiredItem("status");
-        dataSourceSchema.addRequiredItem("url");
-        dataSourceSchema.addRequiredItem("username");
-
-        dataSourceSchema.addProperty("id", new StringSchema());
-        dataSourceSchema.addProperty("name", new StringSchema().minLength(1));
-        dataSourceSchema.addProperty("driverClassName", new StringSchema().minLength(1));
-        dataSourceSchema.addProperty("url", new StringSchema().minLength(1));
-        dataSourceSchema.addProperty("username", new StringSchema().minLength(1));
-        dataSourceSchema.addProperty("password", new StringSchema().minLength(1));
-        dataSourceSchema.addProperty("status", new IntegerSchema().format("int32"));
-        dataSourceSchema.addProperty("testSql", new StringSchema());
-        dataSourceSchema.addProperty("deleted", new StringSchema());
-        dataSourceSchema.addProperty("createdBy", new StringSchema());
-        dataSourceSchema.addProperty("createdDate", new StringSchema().format("date-time"));
-        dataSourceSchema.addProperty("modifiedBy", new StringSchema());
-        dataSourceSchema.addProperty("modifiedDate", new StringSchema().format("date-time"));
-        components.addSchemas("DataSource", dataSourceSchema);
-
-        // 4. MessageString Schema
-        ObjectSchema messageStringSchema = new ObjectSchema();
-        messageStringSchema.addProperty("code", new IntegerSchema().format("int32"));
-        messageStringSchema.addProperty("message", new StringSchema());
-        messageStringSchema.addProperty("timestamp", new StringSchema().format("date-time"));
-        messageStringSchema.addProperty("data", new StringSchema());
-        components.addSchemas("MessageString", messageStringSchema);
-
-        // 5. ApiDefinition Schema
-        ObjectSchema apiDefinitionSchema = new ObjectSchema();
-        apiDefinitionSchema.addRequiredItem("datasourceId");
-        apiDefinitionSchema.addRequiredItem("method");
-        apiDefinitionSchema.addRequiredItem("name");
-        apiDefinitionSchema.addRequiredItem("path");
-
-        apiDefinitionSchema.addProperty("id", new StringSchema());
-        apiDefinitionSchema.addProperty("name", new StringSchema().minLength(1));
-        apiDefinitionSchema.addProperty("path", new StringSchema().minLength(1));
-        apiDefinitionSchema.addProperty("method", new StringSchema().minLength(1));
-        apiDefinitionSchema.addProperty("description", new StringSchema());
-        apiDefinitionSchema.addProperty("datasourceId", new StringSchema());
-        apiDefinitionSchema.addProperty("deleted", new StringSchema());
-        apiDefinitionSchema.addProperty("createdBy", new StringSchema());
-        apiDefinitionSchema.addProperty("createdDate", new StringSchema().format("date-time"));
-        apiDefinitionSchema.addProperty("modifiedBy", new StringSchema());
-        apiDefinitionSchema.addProperty("modifiedDate", new StringSchema().format("date-time"));
-        components.addSchemas("ApiDefinition", apiDefinitionSchema);
-
-        // 6. MessageListDataSource Schema
-        ObjectSchema messageListDataSourceSchema = new ObjectSchema();
-        messageListDataSourceSchema.addProperty("code", new IntegerSchema().format("int32"));
-        messageListDataSourceSchema.addProperty("message", new StringSchema());
-        messageListDataSourceSchema.addProperty("timestamp", new StringSchema().format("date-time"));
-
-        ArraySchema dataSourceArray = new ArraySchema();
-        dataSourceArray.setItems(new Schema<>().$ref("#/components/schemas/DataSource"));
-        messageListDataSourceSchema.addProperty("data", dataSourceArray);
-        components.addSchemas("MessageListDataSource", messageListDataSourceSchema);
-
-        // 7. Message Schema (通用响应)
-        ObjectSchema messageSchema = new ObjectSchema();
-        messageSchema.addProperty("code", new IntegerSchema().format("int32"));
-        messageSchema.addProperty("message", new StringSchema());
-        messageSchema.addProperty("timestamp", new StringSchema().format("date-time"));
-        messageSchema.addProperty("data", new ObjectSchema());
-        components.addSchemas("Message", messageSchema);
-
-        // 8. UserInfo Schema
-        ObjectSchema userInfoSchema = new ObjectSchema();
-        userInfoSchema.addProperty("sessionId", new StringSchema());
-        userInfoSchema.addProperty("id", new StringSchema());
-        userInfoSchema.addProperty("username", new StringSchema());
-        userInfoSchema.addProperty("password", new StringSchema());
-        userInfoSchema.addProperty("decipherable", new StringSchema());
-        userInfoSchema.addProperty("sharedSecret", new StringSchema());
-        userInfoSchema.addProperty("sharedCounter", new StringSchema());
-        userInfoSchema.addProperty("userType", new StringSchema());
-        userInfoSchema.addProperty("userState", new StringSchema());
-        userInfoSchema.addProperty("displayName", new StringSchema());
-        userInfoSchema.addProperty("nickName", new StringSchema());
-        userInfoSchema.addProperty("sortIndex", new IntegerSchema().format("int32"));
-        userInfoSchema.addProperty("nameZhSpell", new StringSchema().description("名字中文拼音"));
-        userInfoSchema.addProperty("nameZhShortSpell", new StringSchema().description("名字中文拼音简称"));
-        userInfoSchema.addProperty("pictureId", new StringSchema());
-        userInfoSchema.addProperty("email", new StringSchema());
-        userInfoSchema.addProperty("emailVerified", new IntegerSchema().format("int32"));
-        userInfoSchema.addProperty("mobile", new StringSchema());
-        userInfoSchema.addProperty("mobileVerified", new IntegerSchema().format("int32"));
-        userInfoSchema.addProperty("passwordQuestion", new StringSchema());
-        userInfoSchema.addProperty("passwordAnswer", new StringSchema());
-        userInfoSchema.addProperty("passwordLastSetTime", new StringSchema().format("date-time"));
-        userInfoSchema.addProperty("badPasswordCount", new IntegerSchema().format("int32"));
-        userInfoSchema.addProperty("badPasswordTime", new StringSchema().format("date-time"));
-        userInfoSchema.addProperty("unLockTime", new StringSchema().format("date-time"));
-        userInfoSchema.addProperty("isLocked", new IntegerSchema().format("int32"));
-        userInfoSchema.addProperty("lastLoginTime", new StringSchema().format("date-time"));
-        userInfoSchema.addProperty("lastLoginIp", new StringSchema());
-        userInfoSchema.addProperty("lastLogoffTime", new StringSchema().format("date-time"));
-        userInfoSchema.addProperty("passwordSetType", new IntegerSchema().format("int32"));
-        userInfoSchema.addProperty("loginCount", new IntegerSchema().format("int32"));
-        userInfoSchema.addProperty("regionHistory", new StringSchema());
-        userInfoSchema.addProperty("passwordHistory", new StringSchema());
-        userInfoSchema.addProperty("loginFailedCount", new IntegerSchema().format("int32"));
-        userInfoSchema.addProperty("loginFailedTime", new StringSchema().format("date-time"));
-        userInfoSchema.addProperty("locale", new StringSchema());
-        userInfoSchema.addProperty("timeZone", new StringSchema());
-        userInfoSchema.addProperty("preferredLanguage", new StringSchema());
-        userInfoSchema.addProperty("isOnline", new IntegerSchema().format("int32"));
-        userInfoSchema.addProperty("ldapDn", new StringSchema());
-        userInfoSchema.addProperty("status", new IntegerSchema().format("int32"));
-        userInfoSchema.addProperty("deleted", new StringSchema());
-        userInfoSchema.addProperty("description", new StringSchema());
-        userInfoSchema.addProperty("createdBy", new StringSchema());
-        userInfoSchema.addProperty("createdDate", new StringSchema().format("date-time"));
-        userInfoSchema.addProperty("modifiedBy", new StringSchema());
-        userInfoSchema.addProperty("modifiedDate", new StringSchema().format("date-time"));
-        userInfoSchema.addProperty("instId", new StringSchema());
-        userInfoSchema.addProperty("syncId", new StringSchema());
-        userInfoSchema.addProperty("syncName", new StringSchema());
-        userInfoSchema.addProperty("originId", new StringSchema());
-        userInfoSchema.addProperty("originId2", new StringSchema());
-        userInfoSchema.addProperty("gradingUserId", new StringSchema());
-        components.addSchemas("UserInfo", userInfoSchema);
-
-        // 9. ImageCaptcha Schema
-        ObjectSchema imageCaptchaSchema = new ObjectSchema();
-        imageCaptchaSchema.addProperty("state", new StringSchema());
-        imageCaptchaSchema.addProperty("image", new StringSchema());
-        components.addSchemas("ImageCaptcha", imageCaptchaSchema);
-
-        // 10. MessageImageCaptcha Schema
-        ObjectSchema messageImageCaptchaSchema = new ObjectSchema();
-        messageImageCaptchaSchema.addProperty("code", new IntegerSchema().format("int32"));
-        messageImageCaptchaSchema.addProperty("message", new StringSchema());
-        messageImageCaptchaSchema.addProperty("timestamp", new StringSchema().format("date-time"));
-        messageImageCaptchaSchema.addProperty("data", new Schema<>().$ref("#/components/schemas/ImageCaptcha"));
-        components.addSchemas("MessageImageCaptcha", messageImageCaptchaSchema);
+        ObjectSchema ApiKey = new ObjectSchema();
+        ApiKey.addProperty("maxkey", new StringSchema());
+        ApiKey.addProperty("apiKey", new StringSchema());
+        components.addSchemas("ApiKey", ApiKey);
     }
 
     /**
@@ -308,6 +146,11 @@ public class SwaggerApiController {
      */
     private Paths buildDynamicApiPaths() {
         Paths paths = new Paths();
+        List<App> appList = appService.findAll();
+        Map<String, App> appMap = new HashMap<>();
+        for (App app : appList) {
+            appMap.put(app.getId(), app);
+        }
 
         // 获取所有API定义
         LambdaQuery<AppResources> wrapper = new LambdaQuery<>();
@@ -317,11 +160,10 @@ public class SwaggerApiController {
         for (AppResources apiDefinition : apiDefinitions) {
             // 获取已发布的版本
             ApiVersion publishedVersion = apiVersionService.findPublishedVersionByApiId(apiDefinition.getId());
-
             if (publishedVersion != null) {
                 // 构建路径项
                 io.swagger.v3.oas.models.PathItem pathItem = buildPathItem(apiDefinition, publishedVersion);
-                paths.addPathItem("/api-v1" + apiDefinition.getPath(), pathItem);
+                paths.addPathItem(appMap.get(apiDefinition.getAppId()).getContextPath() + apiDefinition.getPath(), pathItem);
             }
         }
 
@@ -333,19 +175,12 @@ public class SwaggerApiController {
      */
     private io.swagger.v3.oas.models.PathItem buildPathItem(AppResources apiDefinition, ApiVersion apiVersion) {
         io.swagger.v3.oas.models.PathItem pathItem = new io.swagger.v3.oas.models.PathItem();
-
         // 构建操作
         io.swagger.v3.oas.models.Operation operation = new io.swagger.v3.oas.models.Operation();
         operation.setOperationId("dynamic_" + apiDefinition.getId() + "_" + apiDefinition.getMethod().toLowerCase());
         operation.setSummary(apiDefinition.getName());
         operation.setDescription(apiDefinition.getDescription());
-        operation.addTagsItem("动态API");
-
-        // 构建参数
-        List<Parameter> parameters = buildParameters(apiDefinition, apiVersion);
-        if (!parameters.isEmpty()) {
-            operation.setParameters(parameters);
-        }
+        operation.addTagsItem(apiDefinition.getMethod().toLowerCase() + "_" + apiVersion.getApiId());
 
         // 构建响应 - 使用Message Schema
         ApiResponses responses = new ApiResponses();
@@ -356,13 +191,19 @@ public class SwaggerApiController {
         MediaType mediaType = new MediaType();
 
         // 使用Message Schema
-        Schema<?> messageSchema = new Schema<>().$ref("#/components/schemas/Message");
-        mediaType.setSchema(messageSchema);
+//        Schema<?> messageSchema = new Schema<>().$ref("#/components/schemas/Message");
+//        mediaType.setSchema(messageSchema);
         content.addMediaType("application/json", mediaType);
         successResponse.setContent(content);
 
         responses.addApiResponse("200", successResponse);
         operation.setResponses(responses);
+
+        // 构建参数
+        List<Parameter> parameters = buildParameters(apiDefinition, apiVersion);
+        if (!parameters.isEmpty()) {
+            operation.setParameters(parameters);
+        }
 
         // 设置HTTP方法
         String method = apiDefinition.getMethod().toUpperCase();
@@ -393,65 +234,21 @@ public class SwaggerApiController {
      */
     private List<Parameter> buildParameters(AppResources apiDefinition, ApiVersion apiVersion) {
         List<Parameter> parameters = new ArrayList<>();
-
-        // 提取路径参数
-        Pattern pathPattern = Pattern.compile("\\{([^}]+)\\}");
-        Matcher pathMatcher = pathPattern.matcher(apiDefinition.getPath());
-        while (pathMatcher.find()) {
-            String paramName = pathMatcher.group(1);
+        String json = "{\"paramList\":" + apiVersion.getParamDefinition().replace("\n", "") + "}";
+        ApiParamList paramList = JsonUtils.stringToObject(json, ApiParamList.class);
+        for (ApiParam apiParam : paramList.getParamList()) {
+            String in = "POST".equalsIgnoreCase(apiDefinition.getMethod()) || "PUT".equalsIgnoreCase(apiDefinition.getMethod()) ? "body" : "query";
+            ApiParamRule rules = apiParam.getRules();
             PathParameter pathParam = new PathParameter();
-            pathParam.setName(paramName);
-            pathParam.setRequired(true);
+            pathParam.setName(apiParam.getName());
+            pathParam.setRequired(rules.isRequired());
+            pathParam.setIn(in);
+            pathParam.setDescription(apiParam.getDescription());
             pathParam.setSchema(new StringSchema());
             parameters.add(pathParam);
         }
 
-        // 如果是GET请求，添加查询参数
-        if ("GET".equalsIgnoreCase(apiDefinition.getMethod())) {
-            // 添加分页参数
-            if (apiVersion.getSupportsPaging() != null && "1".equals(apiVersion.getSupportsPaging())) {
-                QueryParameter pageNum = new QueryParameter();
-                pageNum.setName("_pageNum");
-                pageNum.setSchema(new IntegerSchema());
-                parameters.add(pageNum);
-
-                QueryParameter pageSize = new QueryParameter();
-                pageSize.setName("_pageSize");
-                pageSize.setSchema(new IntegerSchema());
-                parameters.add(pageSize);
-            }
-
-            // 从SQL模板提取参数
-            extractQueryParametersFromSql(apiVersion.getSqlTemplate(), parameters);
-        }
-
         return parameters;
-    }
-
-    /**
-     * 从SQL模板提取查询参数
-     */
-    private void extractQueryParametersFromSql(String sqlTemplate, List<Parameter> parameters) {
-        if (sqlTemplate == null) return;
-
-        Pattern pattern = Pattern.compile("#\\{([^}]+)\\}");
-        Matcher matcher = pattern.matcher(sqlTemplate);
-        Set<String> paramNames = new HashSet<>();
-
-        while (matcher.find()) {
-            String paramName = matcher.group(1);
-            // 跳过已处理的分页参数
-            if (!"_pageNum".equals(paramName) && !"_pageSize".equals(paramName)) {
-                paramNames.add(paramName);
-            }
-        }
-
-        for (String paramName : paramNames) {
-            QueryParameter param = new QueryParameter();
-            param.setName(paramName);
-            param.setSchema(new StringSchema());
-            parameters.add(param);
-        }
     }
 
     /**
@@ -465,7 +262,7 @@ public class SwaggerApiController {
         MediaType mediaType = new MediaType();
 
         // 使用ObjectSchema作为默认请求体
-        mediaType.setSchema(new ObjectSchema());
+        mediaType.setSchema(new ObjectSchema().$ref("#/components/schemas/ApiKey"));
         content.addMediaType("application/json", mediaType);
         requestBody.setContent(content);
 
