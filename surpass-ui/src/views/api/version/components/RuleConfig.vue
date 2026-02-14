@@ -6,7 +6,7 @@
       @update:model-value="$emit('update:visible', $event)"
   >
     <el-form label-width="100px">
-      <el-form-item label="必填">
+      <el-form-item label="必填" v-if="currentParam?.name !== '_pageNum' && currentParam?.name !== '_pageSize'">
         <el-switch v-model="ruleFormData.required"/>
       </el-form-item>
       <div v-if="currentParam?.type === 'String'">
@@ -28,7 +28,7 @@
           <el-input-number v-model="ruleFormData.maxValue" controls-position="right"/>
         </el-form-item>
       </div>
-      <el-form-item label="格式">
+      <el-form-item label="格式" v-if="currentParam?.name !== '_pageNum' && currentParam?.name !== '_pageSize'">
         <el-select v-model="ruleFormData.format" placeholder="选择格式" clearable @change="handleFormatChange">
           <el-option label="邮箱" value="email"/>
           <el-option label="手机号" value="phone"/>
@@ -40,7 +40,7 @@
         </el-select>
       </el-form-item>
 
-      <el-form-item label="正则表达式">
+      <el-form-item label="正则表达式" v-if="currentParam?.name !== '_pageNum' && currentParam?.name !== '_pageSize'">
         <el-input v-model="ruleFormData.pattern" placeholder="例如: ^[a-zA-Z]+$" @input="handlePatternChange"/>
       </el-form-item>
 

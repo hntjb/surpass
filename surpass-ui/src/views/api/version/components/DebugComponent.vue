@@ -446,7 +446,7 @@ const executeApi = async () => {
 
     responseData.value = response
 
-    if (response.code === 0) {
+    if (response) {
       ElNotification({
         title: '执行成功',
         message: `API执行成功 (${executionTime.value}ms)`,

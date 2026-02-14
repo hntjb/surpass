@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.mybatis.jpa.datasource.DataSourceSwitch;
 import org.dromara.mybatis.jpa.entity.JpaPage;
 import org.dromara.surpass.entity.ApiRequestUri;
@@ -22,8 +23,10 @@ import org.dromara.surpass.persistence.service.ApiVersionService;
 import org.dromara.surpass.persistence.service.AppResourcesService;
 import org.dromara.surpass.persistence.service.ISqlRepository;
 import org.dromara.surpass.util.JsonUtils;
+import org.dromara.surpass.web.ResponseTemplateRenderer;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 
@@ -41,6 +44,7 @@ public class ApiExecuteServiceImpl implements ApiExecuteService {
     private final AppResourcesService appResourcesService;
 
     private final ApiDataSourceService dataSourceService;
+    private final ResponseTemplateRenderer responseRenderer;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -57,6 +61,7 @@ public class ApiExecuteServiceImpl implements ApiExecuteService {
         try {
             AppResources byPathAndMethod;
             ApiVersion apiVersion;
+            Object data = null;
             if (isTest) {
                 apiVersion = getApiVersion(params);
                 byPathAndMethod = appResourcesService.get(apiVersion.getApiId());
@@ -83,7 +88,7 @@ public class ApiExecuteServiceImpl implements ApiExecuteService {
                 int pageNum = Integer.parseInt(params.getOrDefault(DEFAULT_PAGE_NUM_KEY, "1").toString());
                 int pageSize = Integer.parseInt(params.getOrDefault(DEFAULT_PAGE_SIZE_KEY, "20").toString());
                 JpaPage page = new JpaPage(pageNum, pageSize);
-                return sqlRepository.fetch(sql, page, parseredParams);
+                data = sqlRepository.fetch(sql, page, parseredParams);
             } else if (ApiSupportPagingEnum.LIST.getCode().equals(apiVersion.getSupportsPaging())) {
                 // 查询操作
                 return sqlRepository.selectList(sql, parseredParams);
@@ -92,25 +97,27 @@ public class ApiExecuteServiceImpl implements ApiExecuteService {
                 JpaPage page = new JpaPage(1, 1);
                 List<Map<String, Object>> rows = sqlRepository.fetch(sql, page, parseredParams).getRows();
                 if (!rows.isEmpty()) {
-                    return rows.get(0);
+                    data = rows.get(0);
                 }
-                return null;
             } else if (ApiSupportPagingEnum.INSERT.getCode().equals(apiVersion.getSupportsPaging())) {
                 // 插入操作
                 int generatedKey = sqlRepository.insert(sql, parseredParams);
-                return Map.of("affectedRows", 1, "generatedKey", generatedKey);
+                data = Map.of("affectedRows", 1, "generatedKey", generatedKey);
             } else if (ApiSupportPagingEnum.UPDATE.getCode().equals(apiVersion.getSupportsPaging())) {
                 // 更新
                 int affectedRows = sqlRepository.update(sql, parseredParams);
-                return Map.of("affectedRows", affectedRows);
+                data = Map.of("affectedRows", affectedRows);
             } else if (ApiSupportPagingEnum.DELETE.getCode().equals(apiVersion.getSupportsPaging())) {
                 // 删除操作
                 int affectedRows = sqlRepository.delete(sql, parseredParams);
-                return Map.of("affectedRows", affectedRows);
+                data = Map.of("affectedRows", affectedRows);
             } else {
                 throw new BusinessException(50001, "不支持的SQL类型: " + sql);
             }
 
+            return responseRenderer.renderResponse(
+                    StringUtils.isBlank(apiVersion.getResponseTemplate()) ?
+                            responseRenderer.getDefaultResponseTemplate() : apiVersion.getResponseTemplate(), data);
         } catch (Exception e) {
             log.error("执行API失败: {} {}", method, apiRequestUri.getRequestPath(), e);
             throw new BusinessException(50001, "API执行失败: " + e.getMessage());
@@ -178,13 +185,12 @@ public class ApiExecuteServiceImpl implements ApiExecuteService {
             return;
         }
 
-        // 必填校验
-        if (rules.isRequired() && convertedValue == null) {
-            throw new BusinessException(40001, "参数不能为空");
-        }
-
         // 如果值为空，不进行其他校验
-        if (convertedValue == null) {
+        if (convertedValue == null || "".equals(convertedValue.toString()) || convertedValue.toString().isEmpty()) {
+            // 必填校验
+            if (rules.isRequired()) {
+                throw new BusinessException(40001, "参数不能为空");
+            }
             return;
         }
 
@@ -218,30 +224,88 @@ public class ApiExecuteServiceImpl implements ApiExecuteService {
 
         // 正则表达式校验
         if (rules.getPattern() != null && !rules.getPattern().isEmpty()) {
-            if (!valueStr.matches(rules.getPattern())) {
-                throw new BusinessException(40007, "参数格式不符合要求");
+            // 如果是数组类型，需要校验数组中的每个元素
+            if (convertedValue instanceof List) {
+                List<?> list = (List<?>) convertedValue;
+                for (Object item : list) {
+                    if (item != null && !item.toString().matches(rules.getPattern())) {
+                        throw new BusinessException(40007, "数组参数中存在格式不符合要求的元素: " + item);
+                    }
+                }
+            } else if (convertedValue.getClass().isArray()) {
+                int length = Array.getLength(convertedValue);
+                for (int i = 0; i < length; i++) {
+                    Object item = Array.get(convertedValue, i);
+                    if (item != null && !item.toString().matches(rules.getPattern())) {
+                        throw new BusinessException(40007, "数组参数中存在格式不符合要求的元素: " + item);
+                    }
+                }
+            } else {
+                // 非数组类型，直接校验整个值
+                if (!valueStr.matches(rules.getPattern())) {
+                    throw new BusinessException(40007, "参数格式不符合要求");
+                }
             }
         }
 
         // 枚举值校验
         if (rules.getEnumValues() != null && !rules.getEnumValues().isEmpty()) {
             String[] enumValues = rules.getEnumValues().split(",");
-            boolean found = false;
-            for (String enumValue : enumValues) {
-                if (enumValue.trim().equals(valueStr)) {
-                    found = true;
-                    break;
+
+            // 如果是数组类型，需要校验数组中的每个元素
+            if (convertedValue instanceof List) {
+                List<?> list = (List<?>) convertedValue;
+                for (Object item : list) {
+                    if (item != null) {
+                        boolean found = false;
+                        String itemStr = item.toString();
+                        for (String enumValue : enumValues) {
+                            if (enumValue.trim().equals(itemStr)) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            throw new BusinessException(40008, "数组参数中存在不在枚举值范围内的元素: " + itemStr + ", 允许的值: " + rules.getEnumValues());
+                        }
+                    }
+                }
+            } else if (convertedValue.getClass().isArray()) {
+                int length = Array.getLength(convertedValue);
+                for (int i = 0; i < length; i++) {
+                    Object item = Array.get(convertedValue, i);
+                    if (item != null) {
+                        boolean found = false;
+                        String itemStr = item.toString();
+                        for (String enumValue : enumValues) {
+                            if (enumValue.trim().equals(itemStr)) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            throw new BusinessException(40008, "数组参数中存在不在枚举值范围内的元素: " + itemStr + ", 允许的值: " + rules.getEnumValues());
+                        }
+                    }
+                }
+            } else {
+                // 非数组类型，直接校验整个值
+                boolean found = false;
+                for (String enumValue : enumValues) {
+                    if (enumValue.trim().equals(valueStr)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    throw new BusinessException(40008, "参数值必须是: " + rules.getEnumValues());
                 }
             }
-            if (!found) {
-                throw new BusinessException(40008, "参数值必须是: " + rules.getEnumValues());
-            }
         }
-
-        // 格式校验（日期、邮箱等）
-        if (rules.getFormat() != null && !rules.getFormat().isEmpty()) {
-            validateFormat(valueStr, rules.getFormat());
-        }
+//        // 格式校验（日期、邮箱等）
+//        if (rules.getFormat() != null && !rules.getFormat().isEmpty()) {
+//            validateFormat(valueStr, rules.getFormat());
+//        }
     }
 
     /**

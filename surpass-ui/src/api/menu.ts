@@ -39,6 +39,7 @@ function formatMenu(menu: any): any {
         "name": menu.permission,
         "path": menu.requestUrl || menu.permission,
         "query": menu.params || null,
+        "isFrame": menu.isFrame,
         "hidden": menu.isVisible !== 'y',
         "redirect": "noRedirect",
         "component": mapParentIds[menu.id] && mapChildren[menu.id].filter((t: any) => t.isVisible === 'y').length > 0
@@ -111,7 +112,7 @@ export const getRouters: any = () => {
                 tree.push(additionalMenu[key])
             }
             tree = tree.map((t: any) => {
-                if (t.path && !t.path.startsWith('/')) {
+                if (t.path && t.isFrame !== 'y' && !t.path.startsWith('/')) {
                     t.path = '/' + t.path
                 }
                 if (t.meta.activeMenu && !t.meta.activeMenu.startsWith('/')) {

@@ -333,11 +333,9 @@ const handleSubmit = async () => {
     if (isEdit.value) {
       await apiVersionApi.update(formData.id, formData)
       ElMessage.success('更新成功')
-      drawerVisible.value = false
     } else {
       await apiVersionApi.create(formData)
       ElMessage.success('创建成功')
-      drawerVisible.value = false
     }
 
     loadVersions()
@@ -566,12 +564,6 @@ watch(selectedApiId, (newValue) => {
 })
 
 const openRuleConfig = (param) => {
-  // 不允许编辑只读参数的规则
-  if (param.readOnly) {
-    ElMessage.warning('不能编辑只读参数的规则')
-    return
-  }
-
   currentEditingParam.value = param
   ruleConfigDialog.value = true
 }
@@ -586,14 +578,7 @@ const saveRuleConfig = (rules) => {
 
 const updateFormData = (newData) => {
   Object.assign(formData, newData)
-  if (formData.supportsPaging === '1') {
-    const pageSizeIndex = paramList.value.findIndex(param => param.name === '_pageSize')
-    if (paramList.value[pageSizeIndex].rules) {
-      paramList.value[pageSizeIndex].rules.maxValue = formData.pageSizeMax
-    } else {
-      paramList.value[pageSizeIndex].rules = {required: false, minValue: 1, maxValue: formData.pageSizeMax || 1000}
-    }
-  }
+  handlePagingParams()
 }
 
 const handlePagingParams = () => {
@@ -610,12 +595,12 @@ const handlePagingParams = () => {
         type: 'Integer',
         rules: {required: false, minValue: 1, defaultValue: 1},
         description: '页码',
-        readOnly: false,
+        readOnly: true,
         _sys: true,
       })
     } else {
       // 确保只读属性设置正确
-      paramList.value[pageNumIndex].readOnly = false
+      paramList.value[pageNumIndex].readOnly = true
       paramList.value[pageNumIndex].type = 'Integer'
       paramList.value[pageNumIndex]._sys = true
       paramList.value[pageNumIndex].rules = {required: false, minValue: 1, defaultValue: 1}
@@ -628,12 +613,12 @@ const handlePagingParams = () => {
         type: 'Integer',
         rules: {required: false, minValue: 1, maxValue: formData.pageSizeMax || 1000, defaultValue: 20},
         description: '每页条数',
-        readOnly: false,
+        readOnly: true,
         _sys: true,
       })
     } else {
       // 确保只读属性设置正确
-      paramList.value[pageSizeIndex].readOnly = false
+      paramList.value[pageSizeIndex].readOnly = true
       paramList.value[pageSizeIndex].type = 'Integer'
       paramList.value[pageSizeIndex]._sys = true
       paramList.value[pageSizeIndex].rules = {required: false, minValue: 1, maxValue: formData.pageSizeMax || 1000, defaultValue: 20}

@@ -1,356 +1,375 @@
 <template>
-  <el-dialog
-      :title="dialogTitle"
-      v-model="dialogVisible"
-      width="1200px"
-      :before-close="handleDialogClose"
-      append-to-body
-      destroy-on-close
-  >
-    <el-form
-        ref="formRef"
-        :model="formData"
-        :rules="formRules"
-        label-width="120px"
-        class="resource-form"
+  <div>
+    <el-dialog
+        :title="dialogTitle"
+        v-model="dialogVisible"
+        width="1200px"
+        :before-close="handleDialogClose"
+        append-to-body
+        destroy-on-close
     >
-      <!-- 基础信息卡片 -->
-      <el-card class="form-card" shadow="never">
-        <template #header>
-          <div class="card-header">
-            <svg-icon icon-class="info" class="card-icon"/>
-            <span class="card-title">基础信息</span>
-          </div>
-        </template>
+      <el-form
+          ref="formRef"
+          :model="formData"
+          :rules="formRules"
+          label-width="120px"
+          class="resource-form"
+      >
+        <!-- 基础信息卡片 -->
+        <el-card class="form-card" shadow="never">
+          <template #header>
+            <div class="card-header">
+              <svg-icon icon-class="info" class="card-icon"/>
+              <span class="card-title">基础信息</span>
+            </div>
+          </template>
 
-        <el-row :gutter="24">
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
-            <el-form-item label="资源名称" prop="name">
-              <el-input
-                  v-model="formData.name"
-                  placeholder="请输入资源名称"
-                  clearable
-              />
-            </el-form-item>
-          </el-col>
+          <el-row :gutter="24">
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
+              <el-form-item label="资源名称" prop="name">
+                <el-input
+                    v-model="formData.name"
+                    placeholder="请输入资源名称"
+                    clearable
+                />
+              </el-form-item>
+            </el-col>
 
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
-            <el-form-item label="资源类型">
-              <el-radio-group v-model="formData.classify" class="resource-type-group">
-                <el-radio
-                    v-for="dict in resources_type"
-                    :key="dict.value"
-                    :label="dict.value"
-                    class="resource-type-radio"
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
+              <el-form-item label="资源类型">
+                <el-radio-group v-model="formData.classify" class="resource-type-group">
+                  <el-radio
+                      v-for="dict in resources_type"
+                      :key="dict.value"
+                      :label="dict.value"
+                      class="resource-type-radio"
+                  >
+                    {{ dict.label }}
+                  </el-radio>
+                </el-radio-group>
+              </el-form-item>
+            </el-col>
+
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
+              <el-form-item label="父级菜单" prop="parentId">
+                <el-tree-select
+                    clearable
+                    v-model="formData.parentId"
+                    :data="dataOptions"
+                    :props="defaultProps"
+                    check-strictly
+                    value-key="id"
+                    placeholder="请选择父级菜单"
+                    class="tree-select"
+                />
+              </el-form-item>
+            </el-col>
+
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
+              <el-form-item label="权限标识">
+                <el-input
+                    v-model="formData.permission"
+                    placeholder="请输入权限标识"
+                    clearable
+                />
+              </el-form-item>
+            </el-col>
+
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
+              <el-form-item label="状态" prop="status">
+                <el-switch
+                    v-model="formData.status"
+                    active-value="1"
+                    inactive-value="0"
+                    active-text="启用"
+                    inactive-text="禁用"
+                />
+              </el-form-item>
+            </el-col>
+
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
+              <el-form-item :label="$t('jbx.text.sortIndex')" prop="sortIndex">
+                <el-input
+                    v-model="formData.sortIndex"
+                    placeholder="请输入排序值"
+                    type="number"
+                    min="0"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+              <!-- 描述信息 -->
+              <el-form-item label="描述" prop="description">
+                <el-input
+                    v-model="formData.description"
+                    type="textarea"
+                    :rows="1"
+                    placeholder="请输入资源描述"
+                    maxlength="500"
+                    show-word-limit
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-card>
+
+        <!-- 菜单专属配置 -->
+        <el-card
+            v-if="formData.classify === 'menu'"
+            class="form-card"
+            shadow="never"
+        >
+          <template #header>
+            <div class="card-header">
+              <svg-icon icon-class="menu" class="card-icon"/>
+              <span class="card-title">配置信息</span>
+            </div>
+          </template>
+
+          <el-row :gutter="24">
+            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+              <el-form-item label="外部链接">
+                <el-switch
+                    v-model="formData.isFrame"
+                    active-value="y"
+                    inactive-value="n"
+                    active-text="是"
+                    inactive-text="否"
+                />
+              </el-form-item>
+            </el-col>
+
+            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+              <el-form-item label="是否缓存">
+                <el-switch
+                    v-model="formData.isCache"
+                    active-value="y"
+                    inactive-value="n"
+                    active-text="是"
+                    inactive-text="否"
+                />
+              </el-form-item>
+            </el-col>
+
+            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
+              <el-form-item label="是否可见">
+                <el-switch
+                    v-model="formData.isVisible"
+                    active-value="y"
+                    inactive-value="n"
+                    active-text="是"
+                    inactive-text="否"
+                />
+              </el-form-item>
+            </el-col>
+
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
+              <el-form-item label="资源样式">
+                <div class="icon-select-wrapper">
+                  <svg-icon style="margin-top: 18px;" :icon-class="formData.resStyle"></svg-icon>
+                  <icon-select
+                      v-model="formData.resStyle"
+                      @selected="(name) => {formData.resStyle = name}"
+                      class="icon-select-btn"
+                  />
+                </div>
+              </el-form-item>
+            </el-col>
+
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
+              <el-form-item label="请求参数">
+                <el-input
+                    v-model="formData.params"
+                    placeholder="请输入请求参数"
+                    clearable
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-card>
+
+        <!-- API配置 -->
+        <el-card
+            v-if="formData.classify === 'api' || formData.classify === 'openApi' || formData.classify === 'proxy'"
+            class="form-card"
+            shadow="never"
+        >
+          <template #header>
+            <div class="card-header">
+              <svg-icon icon-class="api" class="card-icon"/>
+              <span class="card-title">API配置</span>
+            </div>
+          </template>
+
+          <el-row :gutter="24">
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
+              <el-form-item label="请求地址" prop="path">
+                <el-input
+                    v-model="formData.path"
+                    placeholder="请输入资源路径，如：/users"
+                    clearable
                 >
-                  {{ dict.label }}
-                </el-radio>
-              </el-radio-group>
-            </el-form-item>
-          </el-col>
+                  <template #prepend>{{ props.contextPath }}</template>
+                </el-input>
+              </el-form-item>
+            </el-col>
 
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
-            <el-form-item label="父级菜单" prop="parentId">
-              <el-tree-select
-                  clearable
-                  v-model="formData.parentId"
-                  :data="dataOptions"
-                  :props="defaultProps"
-                  check-strictly
-                  value-key="id"
-                  placeholder="请选择父级菜单"
-                  class="tree-select"
-              />
-            </el-form-item>
-          </el-col>
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12"
+                    v-if="formData.classify === 'api' || formData.classify === 'openApi' || formData.classify === 'proxy'">
+              <el-form-item label="请求方式" prop="method">
+                <el-select
+                    v-model="formData.method"
+                    placeholder="请选择请求方式"
+                    clearable
+                    class="full-width"
+                >
+                  <el-option
+                      v-for="dict in method_type"
+                      :key="dict.value"
+                      :label="dict.label"
+                      :value="dict.value"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
 
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
-            <el-form-item label="权限标识">
-              <el-input
-                  v-model="formData.permission"
-                  placeholder="请输入权限标识"
-                  clearable
-              />
-            </el-form-item>
-          </el-col>
-
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
-            <el-form-item label="状态" prop="status">
-              <el-switch
-                  v-model="formData.status"
-                  active-value="1"
-                  inactive-value="0"
-                  active-text="启用"
-                  inactive-text="禁用"
-              />
-            </el-form-item>
-          </el-col>
-
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
-            <el-form-item :label="$t('jbx.text.sortIndex')" prop="sortIndex">
-              <el-input
-                  v-model="formData.sortIndex"
-                  placeholder="请输入排序值"
-                  type="number"
-                  min="0"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
-            <!-- 描述信息 -->
-            <el-form-item label="描述" prop="description">
-              <el-input
-                  v-model="formData.description"
-                  type="textarea"
-                  :rows="1"
-                  placeholder="请输入资源描述"
-                  maxlength="500"
-                  show-word-limit
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-card>
-
-      <!-- 菜单专属配置 -->
-      <el-card
-          v-if="formData.classify === 'menu'"
-          class="form-card"
-          shadow="never"
-      >
-        <template #header>
-          <div class="card-header">
-            <svg-icon icon-class="menu" class="card-icon"/>
-            <span class="card-title">配置信息</span>
-          </div>
-        </template>
-
-        <el-row :gutter="24">
-          <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-            <el-form-item label="外部链接">
-              <el-switch
-                  v-model="formData.isFrame"
-                  active-value="y"
-                  inactive-value="n"
-                  active-text="是"
-                  inactive-text="否"
-              />
-            </el-form-item>
-          </el-col>
-
-          <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-            <el-form-item label="是否缓存">
-              <el-switch
-                  v-model="formData.isCache"
-                  active-value="y"
-                  inactive-value="n"
-                  active-text="是"
-                  inactive-text="否"
-              />
-            </el-form-item>
-          </el-col>
-
-          <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="8">
-            <el-form-item label="是否可见">
-              <el-switch
-                  v-model="formData.isVisible"
-                  active-value="y"
-                  inactive-value="n"
-                  active-text="是"
-                  inactive-text="否"
-              />
-            </el-form-item>
-          </el-col>
-
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
-            <el-form-item label="资源样式">
-              <div class="icon-select-wrapper">
-                <svg-icon style="margin-top: 18px;" :icon-class="formData.resStyle"></svg-icon>
-                <icon-select
-                    v-model="formData.resStyle"
-                    @selected="(name) => {formData.resStyle = name}"
-                    class="icon-select-btn"
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-if="formData.classify === 'api'">
+              <el-form-item label="请求参数">
+                <el-input
+                    v-model="formData.params"
+                    placeholder="请输入请求参数"
+                    clearable
                 />
-              </div>
-            </el-form-item>
-          </el-col>
+              </el-form-item>
+            </el-col>
 
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
-            <el-form-item label="请求参数">
-              <el-input
-                  v-model="formData.params"
-                  placeholder="请输入请求参数"
-                  clearable
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-card>
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-if="formData.classify === 'openApi'">
+              <el-form-item label="数据源" prop="datasourceId">
+                <el-select
+                    v-model="formData.datasourceId"
+                    placeholder="请选择数据源"
+                    :loading="dataSourceLoading"
+                    clearable
+                    class="full-width"
+                >
+                  <el-option
+                      v-for="ds in dataSourceList"
+                      :key="ds.id"
+                      :label="ds.name"
+                      :value="ds.id"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
 
-      <!-- API配置 -->
-      <el-card
-          v-if="formData.classify === 'api' || formData.classify === 'openApi' || formData.classify === 'proxy'"
-          class="form-card"
-          shadow="never"
-      >
-        <template #header>
-          <div class="card-header">
-            <svg-icon icon-class="api" class="card-icon"/>
-            <span class="card-title">API配置</span>
-          </div>
-        </template>
-
-        <el-row :gutter="24">
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
-            <el-form-item label="请求地址" prop="path">
-              <el-input
-                  v-model="formData.path"
-                  placeholder="请输入资源路径，如：/users"
-                  clearable
-              >
-                <template #prepend>{{ props.contextPath }}</template>
-              </el-input>
-            </el-form-item>
-          </el-col>
-
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12"
-                  v-if="formData.classify === 'api' || formData.classify === 'openApi' || formData.classify === 'proxy'">
-            <el-form-item label="请求方式" prop="method">
-              <el-select
-                  v-model="formData.method"
-                  placeholder="请选择请求方式"
-                  clearable
-                  class="full-width"
-              >
-                <el-option
-                    v-for="dict in method_type"
-                    :key="dict.value"
-                    :label="dict.label"
-                    :value="dict.value"
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-if="formData.classify === 'openApi'">
+              <el-form-item label="是否开放">
+                <el-switch
+                    v-model="formData.isOpen"
+                    active-value="y"
+                    inactive-value="n"
+                    active-text="是"
+                    inactive-text="否"
                 />
-              </el-select>
-            </el-form-item>
-          </el-col>
+              </el-form-item>
+            </el-col>
 
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-if="formData.classify === 'api'">
-            <el-form-item label="请求参数">
-              <el-input
-                  v-model="formData.params"
-                  placeholder="请输入请求参数"
-                  clearable
-              />
-            </el-form-item>
-          </el-col>
+            <!-- API代理专属 -->
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-if="formData.classify === 'proxy'">
+              <el-form-item label="认证方式" prop="datasourceId">
+                <div style="display: flex;justify-content: space-between;width: 100%">
+                  <el-select
+                      style="flex: 1"
+                      v-model="formData.datasourceId"
+                      placeholder="请选择认证方式"
+                      clearable
+                      class="full-width"
+                  >
+                    <el-option
+                        v-for="dict in proxySourceList"
+                        :key="dict.id"
+                        :label="dict.alias"
+                        :value="dict.id"
+                    />
 
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-if="formData.classify === 'openApi'">
-            <el-form-item label="数据源" prop="datasourceId">
-              <el-select
-                  v-model="formData.datasourceId"
-                  placeholder="请选择数据源"
-                  :loading="dataSourceLoading"
-                  clearable
-                  class="full-width"
-              >
-                <el-option
-                    v-for="ds in dataSourceList"
-                    :key="ds.id"
-                    :label="ds.name"
-                    :value="ds.id"
+                  </el-select>
+                  <el-button @click="drawerVisible = true" style="width:66px">管理</el-button>
+                </div>
+              </el-form-item>
+            </el-col>
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-if="formData.classify === 'proxy'">
+              <el-form-item label="代理地址" prop="params">
+                <el-input
+                    v-model="formData.params"
+                    placeholder="请输入完整的URL"
+                    clearable
                 />
-              </el-select>
-            </el-form-item>
-          </el-col>
+              </el-form-item>
+            </el-col>
 
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-if="formData.classify === 'openApi'">
-            <el-form-item label="是否开放">
-              <el-switch
-                  v-model="formData.isOpen"
-                  active-value="y"
-                  inactive-value="n"
-                  active-text="是"
-                  inactive-text="否"
-              />
-            </el-form-item>
-          </el-col>
+          </el-row>
+        </el-card>
 
-          <!-- API代理专属 -->
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-if="formData.classify === 'proxy'">
-            <el-form-item label="认证协议" prop="proxyId">
-              <el-select
-                  v-model="formData.datasourceId"
-                  placeholder="请选择认证协议"
-                  clearable
-                  class="full-width"
-                  @change="(val) => {formData.proxyId = val}"
-              >
-                <el-option
-                    v-for="dict in proxySourceList"
-                    :key="dict.id"
-                    :label="dict.alias"
-                    :value="dict.id"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-if="formData.classify === 'proxy'">
-            <el-form-item label="代理地址" prop="proxyUrl">
-              <el-input
-                  v-model="formData.params"
-                  placeholder="请输入完整的URL"
-                  clearable
-                  @input="(val) => {formData.proxyUrl = val}"
-              />
-            </el-form-item>
-          </el-col>
+        <!-- 按钮专属配置 -->
+        <el-card
+            v-if="formData.classify === 'button'"
+            class="form-card"
+            shadow="never"
+        >
+          <template #header>
+            <div class="card-header">
+              <svg-icon icon-class="button" class="card-icon"/>
+              <span class="card-title">按钮配置</span>
+            </div>
+          </template>
 
-        </el-row>
-      </el-card>
+          <el-row :gutter="24">
+            <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
+              <el-form-item label="操作类型">
+                <el-select
+                    v-model="formData.actionType"
+                    placeholder="请选择操作类型"
+                    clearable
+                    class="full-width"
+                >
+                  <el-option
+                      v-for="dict in action_type"
+                      :key="dict.value"
+                      :label="dict.label"
+                      :value="dict.value"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-card>
 
-      <!-- 按钮专属配置 -->
-      <el-card
-          v-if="formData.classify === 'button'"
-          class="form-card"
-          shadow="never"
-      >
-        <template #header>
-          <div class="card-header">
-            <svg-icon icon-class="button" class="card-icon"/>
-            <span class="card-title">按钮配置</span>
-          </div>
-        </template>
+      </el-form>
 
-        <el-row :gutter="24">
-          <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
-            <el-form-item label="操作类型">
-              <el-select
-                  v-model="formData.actionType"
-                  placeholder="请选择操作类型"
-                  clearable
-                  class="full-width"
-              >
-                <el-option
-                    v-for="dict in action_type"
-                    :key="dict.value"
-                    :label="dict.label"
-                    :value="dict.value"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-card>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="handleDialogClose">取消</el-button>
+          <el-button type="primary" @click="handleSubmit">
+            保存
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
 
-    </el-form>
-
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="handleDialogClose">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">
-          保存
-        </el-button>
-      </div>
-    </template>
-  </el-dialog>
+    <el-drawer
+        :title="drawerTitle"
+        v-model="drawerVisible"
+        size="1200px"
+        :before-close="handleDrawerClose"
+        append-to-body
+        destroy-on-close
+    >
+      <template #header>
+        <h4>{{ drawerTitle }}</h4>
+      </template>
+      <proxyRules :app-id="appId"></proxyRules>
+    </el-drawer>
+  </div>
 </template>
 
 <script setup>
@@ -361,6 +380,7 @@ import {useI18n} from "vue-i18n";
 import * as proxy from "@/utils/Dict";
 import IconSelect from "@/components/IconSelect/index.vue";
 import SvgIcon from "@/components/SvgIcon/index.vue";
+import proxyRules from "@/views/app/app-manage/proxy-rules.vue"
 
 
 const {
@@ -420,27 +440,33 @@ const defaultProps = ref({
 });
 
 // 表单验证规则
-const formRules = {
-  name: [
-    {required: true, message: '请输入API名称', trigger: 'blur'}
-  ],
-  path: [
-    {required: true, message: '请输入API路径', trigger: 'blur'}
-  ],
-  method: [
-    {required: true, message: '请选择HTTP方法', trigger: 'change'}
-  ],
-  datasourceId: [
-    {required: true, message: '请选择数据源', trigger: 'change'}
-  ],
-  proxyId: [
-    {required: true, message: '请选择代理协议', trigger: 'change'}
-  ],
-  proxyUrl: [
-    {required: true, message: '请输入代理地址', trigger: 'change'}
-  ]
-}
-
+const formRules = computed(() => {
+  const res = {
+    name: [
+      {required: true, message: '请输入API名称', trigger: 'blur'}
+    ],
+    path: [
+      {required: true, message: '请输入API路径', trigger: 'blur'}
+    ],
+    method: [
+      {required: true, message: '请选择HTTP方法', trigger: 'change'}
+    ],
+    datasourceId: [
+      {required: true, message: '请选择数据源', trigger: 'change'}
+    ]
+  }
+  if (props.formData.classify === 'proxy') {
+    res.datasourceId = [
+      {required: true, message: '请选择代理协议', trigger: 'change'}
+    ]
+    res['params'] = [
+      {required: true, message: '请输入代理地址', trigger: 'change'}
+    ]
+  }
+  return res
+})
+const drawerTitle = ref('代理方法管理');
+const drawerVisible = ref(false);
 // 计算属性
 const dialogTitle = computed(() => props.isEdit ? '编辑资源' : '新增资源')
 const dialogVisible = computed({
@@ -457,7 +483,9 @@ const dialogVisible = computed({
 const handleDialogClose = () => {
   emit('close')
 }
-
+const handleDrawerClose = () => {
+  drawerVisible.value = false
+};
 const handleSubmit = async () => {
   const handleResponse = (res, successMessage) => {
     if (res.code === 0) {

@@ -33,9 +33,9 @@ public class ApiGatewayController {
      */
     @GetMapping("/**")
     public ResponseEntity<Object> getHandle(
-                    HttpServletRequest request,
-                    @RequestParam(required = false) Map<String, Object> paramMap) {
-        return handleRequest(RequestMethod.GET, request,combineParam(null,paramMap));
+            HttpServletRequest request,
+            @RequestParam(required = false) Map<String, Object> paramMap) {
+        return handleRequest(RequestMethod.GET, request, combineParam(null, paramMap));
     }
 
     /**
@@ -43,10 +43,10 @@ public class ApiGatewayController {
      */
     @PostMapping("/**")
     public ResponseEntity<Object> postHandle(
-                    HttpServletRequest request,
-                    @RequestBody(required = false) Map<String, Object> bodyMap,
-                    @RequestParam(required = false) Map<String, Object> paramMap) {
-        return handleRequest(RequestMethod.POST, request,combineParam(bodyMap,paramMap));
+            HttpServletRequest request,
+            @RequestBody(required = false) Map<String, Object> bodyMap,
+            @RequestParam(required = false) Map<String, Object> paramMap) {
+        return handleRequest(RequestMethod.POST, request, combineParam(bodyMap, paramMap));
     }
 
     /**
@@ -54,10 +54,10 @@ public class ApiGatewayController {
      */
     @PutMapping("/**")
     public ResponseEntity<Object> putHandle(
-                    HttpServletRequest request,
-                    @RequestBody(required = false) Map<String, Object> bodyMap,
-                    @RequestParam(required = false) Map<String, Object> paramMap) {
-        return handleRequest(RequestMethod.PUT, request,combineParam(bodyMap,paramMap));
+            HttpServletRequest request,
+            @RequestBody(required = false) Map<String, Object> bodyMap,
+            @RequestParam(required = false) Map<String, Object> paramMap) {
+        return handleRequest(RequestMethod.PUT, request, combineParam(bodyMap, paramMap));
     }
 
     /**
@@ -65,48 +65,46 @@ public class ApiGatewayController {
      */
     @DeleteMapping("/**")
     public ResponseEntity<Object> deleteHandle(
-                    HttpServletRequest request,
-                    @RequestParam(required = false) Map<String, Object> paramMap) {
-        return handleRequest(RequestMethod.DELETE, request,combineParam(null,paramMap));
+            HttpServletRequest request,
+            @RequestParam(required = false) Map<String, Object> paramMap) {
+        return handleRequest(RequestMethod.DELETE, request, combineParam(null, paramMap));
     }
-    
+
     /**
      * 请求参数合并
+     *
      * @param bodyMap
      * @param paramMap
      * @return
      */
-    Map<String, Object> combineParam(Map<String, Object> bodyMap,Map<String, Object> paramMap){
+    Map<String, Object> combineParam(Map<String, Object> bodyMap, Map<String, Object> paramMap) {
         Map<String, Object> combinedParamMap = new HashMap<>();
-        if(paramMap != null) {
+        if (paramMap != null) {
             combinedParamMap.putAll(paramMap);
         }
-        if(bodyMap != null) {
+        if (bodyMap != null) {
             combinedParamMap.putAll(bodyMap);
         }
         return combinedParamMap;
     }
-    
+
     /**
      * 请求处理
+     *
      * @param method
      * @param request
      * @param paramMap
      * @return
      */
     private ResponseEntity<Object> handleRequest(
-                    RequestMethod method, 
-                    HttpServletRequest request,
-                    Map<String, Object> paramMap) {
+            RequestMethod method,
+            HttpServletRequest request,
+            Map<String, Object> paramMap) {
         try {
             // 1.获取URL上下文
             ApiRequestUri apiRequestUri = WebContext.explainRequestUri(request);
             // 2. 执行API
-            Object result = apiExecuteService.execute(apiRequestUri, method.name(), paramMap, true);
-            // 3. 渲染响应
-            Object response = responseRenderer.renderResponse(
-            		responseRenderer.getDefaultResponseTemplate(), result);
-            
+            Object response = apiExecuteService.execute(apiRequestUri, method.name(), paramMap, false);
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(response);

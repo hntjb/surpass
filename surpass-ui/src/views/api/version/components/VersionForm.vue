@@ -32,31 +32,31 @@
             :rules="formRules"
             label-width="100px"
         >
-           <!-- API信息 -->
-                <div class="api-info" v-if="apiDefinition">
-                  <el-descriptions :column="2" border>
-                    <el-descriptions-item label="API名称">
-                      {{ apiDefinition.name }}
-                    </el-descriptions-item>
-                    <el-descriptions-item label="所属应用">
-                      <el-tag>{{ apiDefinition.belongApp  }}</el-tag>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="当前版本">
-                      <el-tag type="success">v{{ formData.version }}</el-tag>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="方法">
-                      <el-tag>
-                        {{ apiDefinition.method }}
-                      </el-tag>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="上下文">
-                      <el-tag>{{ apiDefinition.contextPath }}</el-tag>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="路径">
-                      <el-tag>{{ apiDefinition.path }}</el-tag>
-                    </el-descriptions-item>
-                  </el-descriptions>
-                </div>
+          <!-- API信息 -->
+          <div class="api-info" v-if="apiDefinition">
+            <el-descriptions :column="2" border>
+              <el-descriptions-item label="API名称">
+                {{ apiDefinition.name }}
+              </el-descriptions-item>
+              <el-descriptions-item label="所属应用">
+                <el-tag>{{ apiDefinition.belongApp }}</el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item label="当前版本">
+                <el-tag type="success">v{{ formData.version }}</el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item label="方法">
+                <el-tag>
+                  {{ apiDefinition.method }}
+                </el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item label="上下文">
+                <el-tag>{{ apiDefinition.contextPath }}</el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item label="路径">
+                <el-tag>{{ apiDefinition.path }}</el-tag>
+              </el-descriptions-item>
+            </el-descriptions>
+          </div>
           <el-tabs v-model="activeTab" class="form-tabs">
             <el-tab-pane label="基础配置" name="basic">
               <div class="tab-content">
@@ -179,7 +179,6 @@
                               type="primary"
                               @click="openRuleConfig(row)"
                               :title="JSON.stringify(row.rules, null, 2)"
-                              :disabled="row.readOnly"
                           >
                             {{ getRuleDisplayText(row.rules) || '配置规则' }}
                           </el-button>
@@ -230,9 +229,14 @@
                   <div class="param-definition-container">
                     <div class="param-header">
                       <span></span>
-                      <el-button type="primary" size="small" @click="addResponse">
-                        添加响应参数
-                      </el-button>
+                      <div>
+                        <el-button type="primary" size="small" @click="updateParamList">
+                          更新参数
+                        </el-button>
+                        <el-button type="primary" size="small" @click="addResponse">
+                          添加响应参数
+                        </el-button>
+                      </div>
                     </div>
                     <el-table :data="responseList" border style="width: 100%; margin-top: 10px;">
                       <el-table-column prop="name" label="参数名" width="180">
@@ -356,7 +360,7 @@ const props = defineProps({
       rateLimit: 0
     })
   },
-  apiDefinition:{type: Object,default:{}},
+  apiDefinition: {type: Object, default: {}},
   paramList: {
     type: Array,
     default: () => []
@@ -667,7 +671,7 @@ const handleTest = async () => {
     }
 
     console.log('apiInfoForTest ', JSON.stringify(apiInfoForTest))
-    
+
     // 显示测试弹框
     testDialogVisible.value = true
 
@@ -756,7 +760,9 @@ const updateParam = (index, field, value) => {
   newParamList[index] = {...newParamList[index], [field]: value}
   emit('update:paramList', newParamList)
 }
-
+const updateParamList = () => {
+  syncSqlParamsToParamList(props.formData.sqlTemplate)
+}
 const addResponse = () => {
   const newResponseList = [...props.responseList, {
     name: '',
@@ -781,7 +787,7 @@ const updateResponse = (index, field, value) => {
 }
 
 const handleSqlTemplateChange = (value, viewUpdate) => {
-  console.log("handleSqlTemplateChange" + value);
+  console.log("handleSqlTemplateChange", value);
   // 更新表单数据
   emit('update:formData', {...props.formData, sqlTemplate: value})
   // 同步SQL模板参数到参数定义列表
@@ -789,11 +795,6 @@ const handleSqlTemplateChange = (value, viewUpdate) => {
 }
 
 const openRuleConfig = (param) => {
-  // 不允许编辑只读参数的规则
-  if (param.readOnly) {
-    ElMessage.warning('不能编辑只读参数的规则')
-    return
-  }
   emit('rule-config', param)
 }
 

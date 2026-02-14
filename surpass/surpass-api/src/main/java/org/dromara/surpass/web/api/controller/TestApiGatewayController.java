@@ -72,11 +72,7 @@ public class TestApiGatewayController {
             // 1.获取URL上下文
             ApiRequestUri apiRequestUri = WebContext.explainRequestUri(request);
             // 2. 执行API
-            Object result = apiExecuteService.execute(apiRequestUri, method.name(), paramMap, true);
-            // 3. 渲染响应
-            Object response = responseRenderer.renderResponse(
-                    responseRenderer.getDefaultResponseTemplate(), result);
-
+            Object response = apiExecuteService.execute(apiRequestUri, method.name(), paramMap, true);
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(response);

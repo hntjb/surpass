@@ -12,7 +12,6 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.PathParameter;
-import io.swagger.v3.oas.models.parameters.QueryParameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
@@ -28,6 +27,7 @@ import org.dromara.surpass.entity.api.ApiVersion;
 import org.dromara.surpass.entity.api.dto.ApiParamList;
 import org.dromara.surpass.entity.app.App;
 import org.dromara.surpass.entity.app.AppResources;
+import org.dromara.surpass.enums.ApiFieldDataTypeEnum;
 import org.dromara.surpass.persistence.service.ApiVersionService;
 import org.dromara.surpass.persistence.service.AppResourcesService;
 import org.dromara.surpass.persistence.service.AppService;
@@ -38,8 +38,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * 动态API文档控制器，提供符合SpringDoc规范的API文档接口
@@ -93,7 +91,7 @@ public class SwaggerApiController {
         List<Server> servers = new ArrayList<>();
         Server server = new Server();
         server.setUrl("http://127.0.0.1:" + serverPort + contextPath + "/api");
-        server.setDescription("测试服务");
+        server.setDescription("动态API接口服务");
         servers.add(server);
         openAPI.setServers(servers);
 
@@ -106,7 +104,7 @@ public class SwaggerApiController {
 
         // 5. 添加标签 - 使用动态API标签
         List<Tag> tags = new ArrayList<>();
-        tags.add(new Tag().name("动态API").description("动态生成的API接口"));
+        tags.add(new Tag().name("动态API接口文档").description("包含定义并且已发布的OpenAPI接口"));
         openAPI.setTags(tags);
 
         // 6. 构建路径信息 - 只包含动态API
@@ -135,10 +133,23 @@ public class SwaggerApiController {
      * 添加demo文件中的Schema定义
      */
     private void addDemoSchemas(Components components) {
-        ObjectSchema ApiKey = new ObjectSchema();
-        ApiKey.addProperty("maxkey", new StringSchema());
-        ApiKey.addProperty("apiKey", new StringSchema());
-        components.addSchemas("ApiKey", ApiKey);
+        List<App> appList = appService.findAll();
+        Map<String, App> appMap = new HashMap<>();
+        for (App app : appList) {
+            appMap.put(app.getId(), app);
+        }
+        LambdaQuery<AppResources> wrapper = new LambdaQuery<>();
+        wrapper.eq(AppResources::getClassify, "openApi");
+        List<AppResources> apiDefinitions = appResourcesService.query(wrapper);
+
+        for (AppResources apiDefinition : apiDefinitions) {
+            // 获取已发布的版本
+            ApiVersion publishedVersion = apiVersionService.findPublishedVersionByApiId(apiDefinition.getId());
+            if (publishedVersion != null && ("POST".equalsIgnoreCase(apiDefinition.getMethod()) || "PUT".equalsIgnoreCase(apiDefinition.getMethod()))) {
+                ObjectSchema schema = buildSchema(appMap, apiDefinition, publishedVersion);
+                components.addSchemas("Schema" + publishedVersion.getId(), schema);
+            }
+        }
     }
 
     /**
@@ -162,7 +173,7 @@ public class SwaggerApiController {
             ApiVersion publishedVersion = apiVersionService.findPublishedVersionByApiId(apiDefinition.getId());
             if (publishedVersion != null) {
                 // 构建路径项
-                io.swagger.v3.oas.models.PathItem pathItem = buildPathItem(apiDefinition, publishedVersion);
+                io.swagger.v3.oas.models.PathItem pathItem = buildPathItem(appMap, apiDefinition, publishedVersion);
                 paths.addPathItem(appMap.get(apiDefinition.getAppId()).getContextPath() + apiDefinition.getPath(), pathItem);
             }
         }
@@ -173,14 +184,14 @@ public class SwaggerApiController {
     /**
      * 构建单个路径项
      */
-    private io.swagger.v3.oas.models.PathItem buildPathItem(AppResources apiDefinition, ApiVersion apiVersion) {
+    private io.swagger.v3.oas.models.PathItem buildPathItem(Map<String, App> appMap, AppResources apiDefinition, ApiVersion apiVersion) {
         io.swagger.v3.oas.models.PathItem pathItem = new io.swagger.v3.oas.models.PathItem();
         // 构建操作
         io.swagger.v3.oas.models.Operation operation = new io.swagger.v3.oas.models.Operation();
         operation.setOperationId("dynamic_" + apiDefinition.getId() + "_" + apiDefinition.getMethod().toLowerCase());
         operation.setSummary(apiDefinition.getName());
         operation.setDescription(apiDefinition.getDescription());
-        operation.addTagsItem(apiDefinition.getMethod().toLowerCase() + "_" + apiVersion.getApiId());
+        operation.addTagsItem(appMap.get(apiDefinition.getAppId()).getContextPath() + apiDefinition.getPath());
 
         // 构建响应 - 使用Message Schema
         ApiResponses responses = new ApiResponses();
@@ -201,32 +212,41 @@ public class SwaggerApiController {
 
         // 构建参数
         List<Parameter> parameters = buildParameters(apiDefinition, apiVersion);
-        if (!parameters.isEmpty()) {
-            operation.setParameters(parameters);
-        }
 
         // 设置HTTP方法
         String method = apiDefinition.getMethod().toUpperCase();
         switch (method) {
             case "GET":
                 pathItem.setGet(operation);
+                operation.setParameters(parameters);
                 break;
             case "POST":
                 pathItem.setPost(operation);
                 // 为POST方法添加请求体
-                operation.setRequestBody(buildRequestBody());
+                operation.setRequestBody(buildRequestBody(appMap, apiDefinition, apiVersion, parameters));
                 break;
             case "PUT":
                 pathItem.setPut(operation);
                 // 为PUT方法添加请求体
-                operation.setRequestBody(buildRequestBody());
+                operation.setRequestBody(buildRequestBody(appMap, apiDefinition, apiVersion, parameters));
                 break;
             case "DELETE":
                 pathItem.setDelete(operation);
+                operation.setParameters(parameters);
                 break;
         }
 
         return pathItem;
+    }
+
+    private ObjectSchema buildSchema(Map<String, App> appMap, AppResources apiDefinition, ApiVersion apiVersion) {
+        // 构建参数
+        List<Parameter> parameters = buildParameters(apiDefinition, apiVersion);
+        ObjectSchema schema = new ObjectSchema();
+        for (Parameter parameter : parameters) {
+            schema.addProperty(parameter.getName(), parameter.getSchema());
+        }
+        return schema;
     }
 
     /**
@@ -244,17 +264,55 @@ public class SwaggerApiController {
             pathParam.setRequired(rules.isRequired());
             pathParam.setIn(in);
             pathParam.setDescription(apiParam.getDescription());
-            pathParam.setSchema(new StringSchema());
+            pathParam.setSchema(getParametersSchema(apiDefinition, apiParam));
             parameters.add(pathParam);
         }
 
         return parameters;
     }
 
+    private Schema<?> getParametersSchema(AppResources apiDefinition, ApiParam apiParam) {
+        if (ApiFieldDataTypeEnum.STRING.equals(ApiFieldDataTypeEnum.fromCode(apiParam.getType())) ||
+                ApiFieldDataTypeEnum.BYTE.equals(ApiFieldDataTypeEnum.fromCode(apiParam.getType()))) {
+            return new StringSchema()
+                    .description(apiParam.getDescription())
+                    .example(apiParam.getRules().getDefaultValue());
+        } else if (ApiFieldDataTypeEnum.INTEGER.equals(ApiFieldDataTypeEnum.fromCode(apiParam.getType())) ||
+                ApiFieldDataTypeEnum.SHORT.equals(ApiFieldDataTypeEnum.fromCode(apiParam.getType())) ||
+                ApiFieldDataTypeEnum.LONG.equals(ApiFieldDataTypeEnum.fromCode(apiParam.getType()))) {
+            return new IntegerSchema()
+                    .description(apiParam.getDescription())
+                    .example(apiParam.getRules().getDefaultValue());
+        } else if (ApiFieldDataTypeEnum.BOOLEAN.equals(ApiFieldDataTypeEnum.fromCode(apiParam.getType()))) {
+            return new BooleanSchema()
+                    .description(apiParam.getDescription())
+                    .example(apiParam.getRules().getDefaultValue());
+        } else if (ApiFieldDataTypeEnum.ARRAY_STRING.equals(ApiFieldDataTypeEnum.fromCode(apiParam.getType())) ||
+                ApiFieldDataTypeEnum.ARRAY_INTEGER.equals(ApiFieldDataTypeEnum.fromCode(apiParam.getType())) ||
+                ApiFieldDataTypeEnum.ARRAY_FLOAT.equals(ApiFieldDataTypeEnum.fromCode(apiParam.getType()))) {
+            return new ArraySchema()
+                    .items(new StringSchema())
+                    .description(apiParam.getDescription());
+        } else if (ApiFieldDataTypeEnum.FLOAT.equals(ApiFieldDataTypeEnum.fromCode(apiParam.getType())) ||
+                ApiFieldDataTypeEnum.LONG.equals(ApiFieldDataTypeEnum.fromCode(apiParam.getType())) ||
+                ApiFieldDataTypeEnum.DOUBLE.equals(ApiFieldDataTypeEnum.fromCode(apiParam.getType()))) {
+            return new NumberSchema()
+                    .description(apiParam.getDescription())
+                    .example(apiParam.getRules().getDefaultValue());
+        } else {
+            return new ObjectSchema()
+                    .description(apiParam.getDescription())
+                    .example(apiParam.getRules().getDefaultValue());
+        }
+    }
+
     /**
      * 构建请求体
      */
-    private io.swagger.v3.oas.models.parameters.RequestBody buildRequestBody() {
+    private io.swagger.v3.oas.models.parameters.RequestBody buildRequestBody(Map<String, App> appMap,
+                                                                             AppResources apiDefinition,
+                                                                             ApiVersion apiVersion,
+                                                                             List<Parameter> parameters) {
         io.swagger.v3.oas.models.parameters.RequestBody requestBody = new io.swagger.v3.oas.models.parameters.RequestBody();
         requestBody.setRequired(true);
 
@@ -262,7 +320,7 @@ public class SwaggerApiController {
         MediaType mediaType = new MediaType();
 
         // 使用ObjectSchema作为默认请求体
-        mediaType.setSchema(new ObjectSchema().$ref("#/components/schemas/ApiKey"));
+        mediaType.setSchema(new ObjectSchema().$ref("#/components/schemas/Schema" + apiVersion.getId()));
         content.addMediaType("application/json", mediaType);
         requestBody.setContent(content);
 
