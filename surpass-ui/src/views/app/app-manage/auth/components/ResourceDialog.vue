@@ -363,6 +363,7 @@
         :before-close="handleDrawerClose"
         append-to-body
         destroy-on-close
+        @close="handleUpdateProxy"
     >
       <template #header>
         <h4>{{ drawerTitle }}</h4>
@@ -427,7 +428,7 @@ const props = defineProps({
 
 const contextPath = ref("");
 
-const emit = defineEmits(['update:visible', 'update:formData', 'success', 'close']);
+const emit = defineEmits(['update:visible', 'update:formData', 'success', 'close', 'updateProxySource']);
 
 // 响应式数据
 const dataSourceLoading = ref(false)
@@ -485,6 +486,9 @@ const handleDialogClose = () => {
 }
 const handleDrawerClose = () => {
   drawerVisible.value = false
+};
+const handleUpdateProxy = () => {
+  emit('updateProxySource')
 };
 const handleSubmit = async () => {
   const handleResponse = (res, successMessage) => {

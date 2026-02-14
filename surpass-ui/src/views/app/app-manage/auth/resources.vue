@@ -205,6 +205,8 @@
       :contextPath="contextPath"
       @success="handleDialogSuccess"
       @close="handleDialogClose"
+      @updateProxySource="getProxyList"
+  />
   />
 </div>
 </template>
@@ -525,7 +527,6 @@ const getProxyList = () => {
     proxySourceList.value = res.data
   })
 }
-
 
 watch(
     () => props.appId,
