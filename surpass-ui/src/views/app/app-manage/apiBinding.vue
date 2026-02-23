@@ -5,7 +5,7 @@
       <div class="header-content">
         <div class="header-left">
           <el-button class="back-btn" type="text" icon="ArrowLeft" size="large" plain @click="handleBack"></el-button>
-          <el-tag type="primary" size="large">{{ appName }}:{{ appId }} </el-tag>
+          <el-tag type="primary" size="large">{{ appName }}:{{ appId }}</el-tag>
         </div>
         <div class="header-right">
           <div class="tab-navigation">
@@ -17,7 +17,7 @@
               >
                 <template #label>
                   <div class="tab-label">
-                    <svg-icon :icon-class="item.icon" class="tab-icon" />
+                    <svg-icon :icon-class="item.icon" class="tab-icon"/>
                     <span>{{ item.label }}</span>
                   </div>
                 </template>
@@ -40,16 +40,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import {computed, ref, onMounted} from 'vue'
 import Resources from './auth/resources.vue'
 import ClientAuth from './auth/ClientAuth.vue'
 import RoleAuth from './auth/RoleAuth.vue'
-import { useRoute, useRouter } from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 
 const tabs = [
-  { key: 'resources', label: '资源管理', component: Resources, icon: 'menu' },
-  { key: 'client', label: '客户端授权', component: ClientAuth, icon: 'link' },
-  { key: 'role', label: '角色授权', component: RoleAuth, icon: 'group' }
+  {key: 'resources', label: '资源管理', component: Resources, icon: 'menu'},
+  {key: 'client', label: '客户端授权', component: ClientAuth, icon: 'link'},
+  {key: 'role', label: '角色授权', component: RoleAuth, icon: 'group'}
 ]
 
 const active = ref('resources')

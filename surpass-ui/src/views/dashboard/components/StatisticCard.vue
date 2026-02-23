@@ -1,5 +1,5 @@
 <template>
-  <div class="statistic-card" :style="{ backgroundColor: color }">
+  <div class="statistic-card elegant-container" :class="getCardClass()">
     <div class="statistic-content">
       <div class="statistic-icon">
         <svg-icon :icon-class="icon" class-name="icon" />
@@ -28,27 +28,83 @@ interface Props {
   title: string
   value: number
   icon: string
-  color: string
+  color?: string
+  type?: 'primary' | 'success' | 'warning' | 'danger' | 'info'
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
+const getCardClass = () => {
+  if (props.type) {
+    return `stat-card-${props.type}`
+  }
+  return ''
+}
 </script>
 
 <style scoped lang="scss">
+@import "@/assets/styles/variables.module.scss";
+
 .statistic-card {
-  border-radius: 8px;
   padding: 20px;
-  color: #fff;
   height: 120px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
+  
+  // 默认样式使用素雅白色背景
+  background: white;
+  color: $gray-900;
+  
+  // 不同类型的卡片样式
+  &.stat-card-primary {
+    .statistic-icon .icon {
+      color: $primary;
+    }
+    .statistic-value .value {
+      color: $primary-dark;
+    }
+  }
+  
+  &.stat-card-success {
+    .statistic-icon .icon {
+      color: $success;
+    }
+    .statistic-value .value {
+      color: #219653;
+    }
+  }
+  
+  &.stat-card-warning {
+    .statistic-icon .icon {
+      color: $warning;
+    }
+    .statistic-value .value {
+      color: #D35400;
+    }
+  }
+  
+  &.stat-card-danger {
+    .statistic-icon .icon {
+      color: $danger;
+    }
+    .statistic-value .value {
+      color: #C0392B;
+    }
+  }
+  
+  &.stat-card-info {
+    .statistic-icon .icon {
+      color: $info;
+    }
+    .statistic-value .value {
+      color: #2980B9;
+    }
+  }
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   }
 
   .statistic-content {
@@ -76,12 +132,10 @@ defineProps<Props>()
 
       .statistic-title {
         font-size: 14px;
-        opacity: 0.9;
+        color: $gray-600;
         margin-top: 4px;
       }
     }
   }
-
-
 }
 </style>

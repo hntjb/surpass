@@ -47,7 +47,7 @@
         <el-table-column :label="$t('jbx.text.action')" min-width="50" align="center" width="80">
           <template #default="scope">
             <el-tooltip v-if="scope.row.type !== 'USER-DYNAMIC'" content="移除">
-              <el-button link icon="Delete" @click="onDelete(scope.row)"></el-button>
+              <el-button link icon="Delete" type="info" @click="onDelete(scope.row)"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>

@@ -1,8 +1,5 @@
 <template>
   <div class="version-page">
-    <!-- 页面头部 -->
-    <PageHeader @back="handleBack"/>
-
     <!-- 主要内容区域 -->
     <div class="main-content">
       <!-- API选择卡片 -->
@@ -14,9 +11,9 @@
           @create="showCreateDialog"
           @create-next="createNextVersion"
           @refresh="refreshList"
+          @back="handleBack"
       />
 
-      
       <!-- 版本管理区域 -->
       <div v-if="selectedApiId" class="version-management">
         <!-- 统计信息和操作栏 -->

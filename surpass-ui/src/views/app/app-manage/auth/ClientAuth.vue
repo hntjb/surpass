@@ -4,7 +4,7 @@
       <el-col :span="10">
         <div class="page-header">
           <h3>客户端</h3>
-<!--          <p>管理数据库连接配置，支持多种数据库类型</p>-->
+          <!--          <p>管理数据库连接配置，支持多种数据库类型</p>-->
         </div>
         <el-table
             border
@@ -92,15 +92,8 @@
         <span>{{ node.label.slice(0, 10) + '...' }}</span>
       </el-tooltip>
     </span>
-
-              <!-- 右侧资源类型 -->
-    <el-tag
-        size="small"
-        :type="resourceTagType(data.classify)"
-        class="tree-tag"
-    >
-      {{ resourceLabel(data.classify) }}
-    </el-tag>
+    <!-- 右侧资源类型 -->
+    <dict-tag class="tree-tag" :options="resources_type" :value="data.classify"/>
   </span>
         </el-tree>
       </el-col>
@@ -115,13 +108,14 @@ import DictTagNumber from "@/components/DIctTagNumber/index.vue";
 import * as appResourcesApi from "@/api/app/resources";
 import modal from "@/plugins/modal";
 import {getResourceByClient} from "@/api/app/resources";
+import DictTag from "@/components/DictTag/index.vue";
 
 const {t} = useI18n()
 
 const {proxy} = getCurrentInstance()!;
 
-const {client_type}
-    = proxy?.useDict("client_type");
+const {client_type, resources_type}
+    = proxy?.useDict("client_type", "resources_type");
 
 const props = defineProps({
   appId: {
@@ -138,26 +132,6 @@ const data: any = reactive({
     pageSizeOptions: [10, 20, 50]
   }
 });
-
-const resourceLabel = (classify: any) => {
-  const map = {
-    menu: '菜单',
-    button: '按钮',
-    api: 'API',
-    openApi: 'OpenAPI'
-  }
-  return map[classify] || '未知'
-}
-
-const resourceTagType = (classify: any) => {
-  const map = {
-    menu: 'success',
-    button: 'info',
-    api: 'warning',
-    openApi: 'danger'
-  }
-  return map[classify] || ''
-}
 
 const {queryParams} = toRefs(data);
 const clientList: any = ref<any>([]);

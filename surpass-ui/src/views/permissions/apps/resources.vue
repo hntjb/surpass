@@ -80,7 +80,7 @@
                              class-name="small-padding fixed-width" width="80">
               <template #default="scope">
                 <el-tooltip content="编辑">
-                  <el-button link icon="Edit" @click="handleUpdate(scope.row)"></el-button>
+                  <el-button link icon="Edit" type="info" @click="handleUpdate(scope.row)"></el-button>
                 </el-tooltip>
                 <el-tooltip content="移除">
                   <el-button link icon="Delete" type="danger" @click="handleDelete(scope.row)"></el-button>

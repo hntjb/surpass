@@ -1,8 +1,8 @@
 <template>
   <div class="app-container">
-    <el-card class="common-card">
-      {{ $t('jbx.message.cheack.node') }}：{{ appName }}
-    </el-card>
+<!--    <el-card class="common-card">-->
+<!--      {{ $t('jbx.message.cheack.node') }}：{{ appName }}-->
+<!--    </el-card>-->
     <el-card class="common-card">
       <el-form :model="queryParams" ref="queryRef" :inline="true" style="margin-bottom: 10px">
         <el-form-item :label="$t('jbx.text.groups') + '：'" prop="groupName">

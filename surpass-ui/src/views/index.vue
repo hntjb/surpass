@@ -96,37 +96,37 @@ const statistics = computed(() => [
     title: '应用数量',
     value: dashboardData.value.appCount,
     icon: 'appstore-add',
-    color: '#1890ff'
+    type: 'primary'
   },
   {
     title: '接口总数',
     value: dashboardData.value.apiCount,
     icon: 'api',
-    color: '#74e2ca'
+    type: 'info'
   },
   {
     title: '角色数量',
     value: dashboardData.value.roleCount,
-    icon: 'anticon-group',
-    color: '#52c41a'
+    icon: 'user-switch',
+    type: 'success'
   },
   {
     title: '用户数量',
     value: dashboardData.value.userCount,
     icon: 'user',
-    color: '#faad14'
+    type: 'warning'
   },
   {
     title: '客户端',
     value: dashboardData.value.clientCount,
     icon: 'user2',
-    color: '#722ed1'
+    type: 'primary'
   },
   {
     title: '数据源',
     value: dashboardData.value.datasourceCount,
     icon: 'database',
-    color: '#ff4d4f'
+    type: 'danger'
   }
 ])
 
@@ -140,9 +140,11 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+@import "@/assets/styles/variables.module.scss";
+
 .dashboard-container {
   padding: 20px;
-  background-color: #f0f2f5;
+  background-color: #f8f9fa;
   min-height: calc(100vh - 84px);
 
   .page-header {
@@ -151,34 +153,51 @@ onMounted(() => {
     .page-title {
       font-size: 24px;
       font-weight: bold;
-      color: #333;
+      color: $gray-900;
       margin: 0 0 8px 0;
     }
 
     .page-subtitle {
       font-size: 14px;
-      color: #666;
+      color: $gray-600;
     }
   }
 
   .section {
-    background: #fff;
-    border-radius: 8px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+    }
 
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid $gray-200;
 
       .section-title {
         font-size: 18px;
-        font-weight: bold;
-        color: #333;
+        font-weight: 600;
+        color: $gray-900;
         margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        
+        .header-icon {
+          color: $primary;
+          font-size: 1.2em;
+        }
       }
 
       .section-actions {
@@ -200,17 +219,19 @@ onMounted(() => {
     height: 400px;
 
     .summary-card {
-      background: #fafafa;
-      border-radius: 8px;
+      background: white;
+      border-radius: 12px;
       padding: 16px;
       display: flex;
       align-items: center;
       gap: 12px;
       transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(0, 0, 0, 0.05);
 
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
       }
 
       .summary-icon {

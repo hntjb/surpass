@@ -28,10 +28,11 @@ const tagsViewStore = useTagsViewStore()
 </script>
 
 <style lang="scss" scoped>
+
 @import "@/assets/styles/variables.module";
 
 .app-main {
-  background-color: #f5f7fa;
+  background-color: $gray-50;
   height: calc(100vh - #{$base-navbar-height});
   width: 100%;
   position: relative;
@@ -40,7 +41,7 @@ const tagsViewStore = useTagsViewStore()
   .main-navbar {
     padding: 0 20px;
     background-color: #FFFFFF;
-    border-bottom: 1px solid #d8dce5;
+    border-bottom: 1px solid $gray-200;
     //box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .12), 0 0 3px 0 rgba(0, 0, 0, .04);
 
     .breadcrumb-container {
@@ -72,6 +73,9 @@ const tagsViewStore = useTagsViewStore()
 </style>
 
 <style lang="scss">
+
+@import "@/assets/styles/variables.module";
+
 // fix css style bug in open el-dialog
 .el-popup-parent--hidden {
   .fixed-header {
@@ -85,11 +89,11 @@ const tagsViewStore = useTagsViewStore()
 }
 
 ::-webkit-scrollbar-track {
-  background-color: #f1f1f1;
+  background-color: $gray-100;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #c0c0c0;
+  background-color: $gray-300;
   border-radius: 3px;
 }
 </style>

@@ -5,19 +5,19 @@
         <el-form :model="params" ref="queryForm" :inline="true">
 
           <el-form-item label="请求ID">
-            <el-input v-model="params.requestId" clearable />
+            <el-input v-model="params.requestId" clearable/>
           </el-form-item>
 
           <el-form-item label="Client ID">
-            <el-input v-model="params.clientId" clearable />
+            <el-input v-model="params.clientId" clearable/>
           </el-form-item>
 
           <el-form-item label="应用名称">
-            <el-input v-model="params.appName" clearable />
+            <el-input v-model="params.appName" clearable/>
           </el-form-item>
 
           <el-form-item label="资源名称">
-            <el-input v-model="params.resourceName" clearable />
+            <el-input v-model="params.resourceName" clearable/>
           </el-form-item>
 
           <el-form-item label="请求方法">
@@ -38,7 +38,7 @@
           </el-form-item>
 
           <el-form-item>
-            <el-button type="primary" @click="handleQuery">查询</el-button>
+            <el-button @click="handleQuery">查询</el-button>
             <el-button @click="handleReset">重置</el-button>
           </el-form-item>
         </el-form>
@@ -50,43 +50,26 @@
           v-loading="loading"
           border
           :data="sessions">
-
         <el-table-column prop="requestId" label="请求ID" width="180" fixed show-overflow-tooltip/>
-
         <el-table-column prop="requestMethod" label="请求方法" width="80" show-overflow-tooltip/>
-
         <el-table-column prop="requestUri" label="请求地址" width="220" show-overflow-tooltip/>
-
         <el-table-column prop="clientId" label="Client ID" width="140" show-overflow-tooltip/>
-
         <el-table-column prop="appName" label="应用名称" min-width="120" show-overflow-tooltip/>
-
         <el-table-column prop="resourceName" label="资源名称" width="120" show-overflow-tooltip/>
-
         <el-table-column prop="ipAddr" label="IP" width="120" show-overflow-tooltip/>
-
         <el-table-column prop="location" label="位置" width="120" show-overflow-tooltip/>
-
-        <el-table-column prop="authned" label="认证" width="100" show-overflow-tooltip>
+        <el-table-column prop="authned" label="认证" width="100" align="center" show-overflow-tooltip>
           <template #default="scope">
-            <el-tag :type="scope.row.authned === 'y' ? 'success' : 'danger'">
-              {{ scope.row.authned === 'y' ? '已认证' : '未认证' }}
-            </el-tag>
+            <dict-tag :options="DistData.sys_disable"  :value=" scope.row.authned"></dict-tag>
           </template>
         </el-table-column>
-
-        <el-table-column prop="access" label="访问结果" width="90" show-overflow-tooltip>
+        <el-table-column prop="access" label="访问结果" width="90" align="center" show-overflow-tooltip>
           <template #default="scope">
-            <el-tag :type="scope.row.access === 'y' ? 'success' : 'warning'">
-              {{ scope.row.access }}
-            </el-tag>
+            <dict-tag :options="DistData.sys_disable" :value="scope.row.access"></dict-tag>
           </template>
         </el-table-column>
-
         <el-table-column prop="accessCost" label="耗时(ms)" width="100" show-overflow-tooltip/>
-
         <el-table-column prop="accessTime" label="访问时间" width="160" fixed="right" show-overflow-tooltip/>
-
       </el-table>
 
       <pagination v-if="total>0" :total="total"
@@ -101,13 +84,18 @@
 
 <script lang="ts">
 import {getOpenApiLogs, loginHistory} from "@/api/audit/audit";
+import DictTag from "@/components/DictTag/index.vue";
+import DistData from "@/utils/DistData";
 
 export default {
   name: 'sessions',
+  components: {DictTag},
+  dict: ['sys_disable'],
   data() {
     return {
       loading: true,
       selectionlist: [],
+      DistData: DistData,
       ids: [],
       params: {
         requestId: '',
@@ -166,19 +154,19 @@ export default {
     },
     handleReset() {
       this.params = {
-            requestId: '',
-            clientId: '',
-            appName: '',
-            resourceName: '',
-            requestMethod: '',
-            ipAddr: '',
-            startDate: '',
-            endDate: '',
-            startDatePicker: this.addDays(new Date(), -7),
-            endDatePicker: Date.now(),
-            pageSize: 10,
-            pageNumber: 1,
-            pageSizeOptions: [10, 20, 50]
+        requestId: '',
+        clientId: '',
+        appName: '',
+        resourceName: '',
+        requestMethod: '',
+        ipAddr: '',
+        startDate: '',
+        endDate: '',
+        startDatePicker: this.addDays(new Date(), -7),
+        endDatePicker: Date.now(),
+        pageSize: 10,
+        pageNumber: 1,
+        pageSizeOptions: [10, 20, 50]
       };
       this.handleQuery();
     },

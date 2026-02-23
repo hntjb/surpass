@@ -113,103 +113,125 @@ function setLayout() {
 
 <style lang='scss' scoped>
 @import "@/assets/styles/variables.module";
-
-.navbar {
+.navbar{
   position: fixed;
   z-index: 1001;
   width: 100%;
   height: $base-navbar-height;
   overflow: hidden;
-  background: #fff;
+  background: transparent;
   display: flex;
   justify-content: space-between;
   align-items: center;
-
+  padding-right: 24px;
   .left-main {
     position: relative;
     height: $base-navbar-height;
-
+    display: flex;
+    align-items: center;
     .hamburger-container {
       line-height: $base-navbar-height;
       height: 100%;
-      float: left;
       cursor: pointer;
       transition: background 0.3s;
       -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      border-radius: $base-border-radius;
 
       &:hover {
-        background: rgba(0, 0, 0, 0.025);
+        background: $gray-100;
       }
     }
-
     .logo {
-      float: left;
-      text-align: left;
-      margin-right: 30px;
-      width: auto;
+      margin-left: 16px;
+      font-size: 20px;
+      font-weight: 600;
+      color: $gray-900;
+      display: flex;
+      align-items: center;
+
+      img {
+        height: 32px;
+        margin-right: 12px;
+      }
     }
   }
-
   .topmenu-container {
     position: absolute;
     left: 50px;
   }
-
   .errLog-container {
     display: inline-block;
     vertical-align: top;
   }
-
   .right-menu {
-    margin-right: 30px;
     display: inline-flex;
     justify-content: center;
     align-items: center;
     font-size: 14px;
-
+    gap: 8px;
     &:focus {
       outline: none;
     }
-
     .right-menu-item {
-      padding: 0 8px;
-      color: #000000;
+      padding: 8px 12px;
+      color: $gray-700;
       cursor: pointer;
       outline: none;
-      transition: background-color .3s;
-
+      transition: all 0.3s ease;
+      border-radius: $base-border-radius;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       &.hover-effect {
         cursor: pointer;
-        transition: background 0.3s;
+        transition: all 0.3s ease;
 
         &:hover {
-          background: rgba(0, 0, 0, 0.025);
+          background: $gray-100;
+          color: $primary;
+          transform: translateY(-1px);
         }
       }
-
       .svg-icon {
-        font-size: 16px;
+        font-size: 18px;
       }
     }
-
     .avatar-box {
       height: $base-navbar-height;
       line-height: normal;
     }
-
     .avatar-wrapper {
       height: $base-navbar-height;
-
       display: flex;
       justify-content: flex-start;
       align-items: center;
       cursor: pointer;
+      padding: 0 12px;
+      border-radius: $base-border-radius;
+      transition: all 0.3s ease;
 
-      .user-avatar {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
+      &:hover {
+        background: $gray-100;
       }
+      .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-right: 8px;
+        border: 2px solid $gray-200;
+      }
+
+      span {
+        font-weight: 500;
+        color: $gray-800;
+      }
+    }
+
+    .el-divider {
+      margin: 0 4px;
+      height: 24px;
     }
   }
 }

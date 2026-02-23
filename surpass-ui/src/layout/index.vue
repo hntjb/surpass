@@ -87,19 +87,30 @@ defineComponent({
 <style lang="scss" scoped>
 @import "@/assets/styles/mixin.scss";
 @import "@/assets/styles/variables.module.scss";
-
 ::v-deep(.el-header) {
   position: fixed;
   z-index: 1001;
   width: 100%;
+  backdrop-filter: blur(10px); /* 磨砂玻璃效果 */
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-bottom: 1px solid $gray-200;
+  box-shadow: $base-box-shadow;
 }
-
 .container-main {
   margin-top: $base-navbar-height;
+  min-height: calc(100vh - #{$base-navbar-height});
+  background-color: $gray-50;
 }
-
 .app-wrapper {
-
+  background-color: $gray-50;
 }
-
+.el-aside {
+  background: $base-menu-background;
+  box-shadow: $base-box-shadow;
+  border-right: 1px solid $gray-200;
+  transition: all 0.3s ease;
+}
+.el-main {
+  background-color: $gray-50;
+}
 </style>

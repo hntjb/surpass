@@ -34,8 +34,6 @@
         </div>
         <div style="display: flex">
           <el-button
-              type="success"
-              plain
               @click="downloadTemplate('template')"
           >{{ $t('jbx.text.template') }}
           </el-button>
@@ -116,13 +114,13 @@
         <el-table-column :label="$t('jbx.text.action')" align="center" width="140">
           <template #default="scope">
             <el-tooltip content="编辑">
-              <el-button link icon="Edit" @click="handleUpdate(scope.row)"></el-button>
+              <el-button link icon="Edit" type="info" @click="handleUpdate(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="角色" v-if="scope.row.status === 1">
-              <el-button link icon="Postcard" @click="groupDrawerOpen(scope.row)"></el-button>
+              <el-button link icon="Postcard" type="info" @click="groupDrawerOpen(scope.row)"></el-button>
             </el-tooltip>
-            <el-dropdown v-if="scope.row.status !== 9" style="margin-left: 8px">
-              <el-button link icon="MoreFilled"></el-button>
+            <el-dropdown v-if="scope.row.status !== 9" style="margin-left: 11px;margin-top: 3px;">
+              <el-button link  type="info" icon="MoreFilled"></el-button>
               <template #dropdown>
                 <el-dropdown-menu>
                   <!--                      <el-dropdown-item v-if="scope.row.status === 1"

@@ -34,14 +34,7 @@
                   </span>
 
                   <!-- 资源类型标签 -->
-                  <el-tag
-                      size="small"
-                      :type="resourceTagType(data.classify)"
-                      class="tree-tag"
-                      effect="light"
-                  >
-                    {{ resourceLabel(data.classify) }}
-                  </el-tag>
+                  <dict-tag class="tree-tag" :options="resources_type" :value="data.classify"/>
                 </span>
           </el-tree>
 
@@ -206,7 +199,6 @@
       @success="handleDialogSuccess"
       @close="handleDialogClose"
       @updateProxySource="getProxyList"
-  />
   />
 </div>
 </template>
@@ -489,26 +481,6 @@ function handleNodeClick(data) {
   loadApis();
 }
 
-const resourceLabel = (classify) => {
-  const map = {
-    menu: '菜单',
-    button: '按钮',
-    api: 'API',
-    openApi: 'OpenAPI'
-  }
-  return map[classify] || '未知'
-}
-
-const resourceTagType = (classify) => {
-  const map = {
-    menu: 'success',
-    button: 'info',
-    api: 'warning',
-    openApi: 'danger'
-  }
-  return map[classify] || ''
-}
-
 const getResourceIcon = (classify, icon) => {
   const map = {
     menu: 'menu',
@@ -516,7 +488,6 @@ const getResourceIcon = (classify, icon) => {
     api: 'api',
     openApi: 'api'
   }
-  console.log('getResourceIcon', classify, icon)
   return icon || map[classify] || 'resource'
 }
 

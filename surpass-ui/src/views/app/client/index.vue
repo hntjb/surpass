@@ -89,10 +89,10 @@
         <el-table-column :label="$t('jbx.text.action')" align="center" width="170" fixed="right">
           <template #default="scope">
             <el-tooltip content="我的权限">
-              <el-button link icon="SetUp" @click="handlePermission(scope.row)"></el-button>
+              <el-button link icon="SetUp" type="info" @click="handlePermission(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="编辑">
-              <el-button link icon="Edit" @click="handleUpdate(scope.row)"></el-button>
+              <el-button link icon="Edit"  type="info" @click="handleUpdate(scope.row)"></el-button>
             </el-tooltip>
 <!--            <el-tooltip content="应用授权">
               <el-button link icon="SetUp" @click="handleAppAuth(scope.row)"></el-button>

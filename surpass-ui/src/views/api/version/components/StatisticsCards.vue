@@ -73,6 +73,10 @@ const props = defineProps({
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   flex: 1;
+
+  :deep(.el-card__body){
+    padding: 0 !important;
+  }
 }
 
 .stat-card {

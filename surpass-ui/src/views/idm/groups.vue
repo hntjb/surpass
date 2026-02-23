@@ -54,10 +54,10 @@
         <el-table-column :label="$t('jbx.text.action')" align="center" width="80">
           <template #default="scope">
             <el-tooltip content="编辑">
-              <el-button link icon="Edit" @click="handleUpdate(scope.row)"></el-button>
+              <el-button link icon="Edit" type="info" @click="handleUpdate(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="成员管理">
-              <el-button link icon="User" @click="handleMember(scope.row)"></el-button>
+              <el-button link icon="User" type="info" @click="handleMember(scope.row)"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>

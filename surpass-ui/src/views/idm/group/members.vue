@@ -66,7 +66,7 @@
         <el-table-column :label="$t('jbx.history.systemlogsMessageaction')" align="center" width="80">
           <template #default="scope">
             <el-tooltip content="移除">
-              <el-button link icon="Delete" @click="handleDelete(scope.row)"></el-button>
+              <el-button link icon="Delete" type="info" @click="handleDelete(scope.row)"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>

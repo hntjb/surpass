@@ -33,7 +33,7 @@
             </el-date-picker>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="handleQuery">{{ $t('jbx.text.query') }}
+            <el-button @click="handleQuery">{{ $t('jbx.text.query') }}
             </el-button>
             <el-button @click="handleReset">{{ $t('jbx.text.reset') }}
             </el-button>

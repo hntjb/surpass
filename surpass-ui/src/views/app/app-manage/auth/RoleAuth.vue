@@ -85,13 +85,7 @@
     </span>
 
               <!-- 右侧资源类型 -->
-    <el-tag
-        size="small"
-        :type="resourceTagType(data.classify)"
-        class="tree-tag"
-    >
-      {{ resourceLabel(data.classify) }}
-    </el-tag>
+        <dict-tag class="tree-tag" :options="resources_type" :value="data.classify"/>
   </span>
         </el-tree>
       </el-col>
@@ -106,13 +100,14 @@ import DictTagNumber from "@/components/DIctTagNumber/index.vue";
 import * as appResourcesApi from "@/api/app/resources";
 import modal from "@/plugins/modal";
 import {saveRoleAppRelation, getRoleAuthz} from "@/api/api-service/groupAppResources";
+import DictTag from "@/components/DictTag/index.vue";
 
 const {t} = useI18n()
 
 const {proxy} = getCurrentInstance()!;
 
-const {group_category_options}
-    = proxy?.useDict("group_category_options");
+const {group_category_options, resources_type}
+    = proxy?.useDict("group_category_options", "resources_type");
 
 const props = defineProps({
   appId: {

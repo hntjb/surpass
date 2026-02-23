@@ -1,98 +1,115 @@
 <template>
-  <div class="login">
-    <div class="top-box">
-      <div class="title">
-        <img :src="staticAppInfo.logo" alt=""/>
-        {{ t('appTitle') }}
-      </div>
-      <div class="right">
-        <!--
-        <el-tooltip content="语言选择" effect="dark" placement="bottom">
-          <language class="right-menu-item hover-effect"></language>
-        </el-tooltip>
-        -->
+  <div class="login-container">
+    <!-- 左侧装饰区域 -->
+    <div class="login-decoration">
+      <div class="decoration-content">
+        <div class="brand-info">
+          <img :src="staticAppInfo.logo" alt="Logo" class="brand-logo"/>
+          <h1 class="brand-title">{{ t('appTitle') }}</h1>
+          <p class="brand-slogan">安全 · 高效 · 可靠</p>
+        </div>
+        <div class="decoration-elements">
+          <div class="element element-1"></div>
+          <div class="element element-2"></div>
+          <div class="element element-3"></div>
+        </div>
       </div>
     </div>
 
-    <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
-      <el-form-item prop="username">
-        <el-input
-            v-model="loginForm.username"
-            type="text"
-            auto-complete="off"
-            :placeholder="t('login.textUsername')"
-        >
-          <template #prepend>
-            <svg-icon icon-class="user2" color="#000000"/>
-          </template>
-        </el-input>
-      </el-form-item>
-      <el-form-item prop="password">
-        <el-input
-            v-model="loginForm.password"
-            type="password"
-            auto-complete="off"
-            show-password
-            :placeholder="t('login.textPassword')"
-            @keyup.enter="handleLogin"
-        >
-          <template #prepend>
-            <svg-icon icon-class="password2" color="#ffd700"/>
-          </template>
-        </el-input>
-      </el-form-item>
-      <el-form-item prop="code" v-if="captchaEnabled">
-        <el-input
-            v-model="loginForm.captcha"
-            auto-complete="off"
-            :placeholder="t('login.textCaptcha')"
-            style="width: 63%"
-            @keyup.enter="handleLogin"
-        >
-          <template #prepend>
-            <svg-icon icon-class="validCode2" color="#000000"/>
-          </template>
-        </el-input>
-        <div class="login-code">
-          <img :src="codeUrl" @click="getCode" class="login-code-img" alt=""/>
+    <!-- 右侧登录表单区域 -->
+    <div class="login-main">
+      <div class="login-card">
+        <div class="card-header">
+          <h2 class="login-title">欢迎登录</h2>
+          <p class="login-subtitle">请输入您的账户信息</p>
         </div>
-      </el-form-item>
-      <!--      <div class="operater-wrapper">-->
-      <!--        <el-checkbox v-model="loginForm.rememberMe">-->
-      <!--          <span class="rememberMe">{{ $t('login.rememberMe') }}</span>-->
-      <!--        </el-checkbox>-->
-      <!--        <router-link to="/forgot" class="find-password">-->
-      <!--          {{ t('forgot.title') }}-->
-      <!--        </router-link>-->
-      <!--      </div>-->
-      <el-form-item style="width:100%;">
-        <el-button
-            class="login-btn"
-            :loading="loading"
-            type="primary"
-            style="width:100%;"
-            @click.prevent="handleLogin">
-          <span v-if="!loading">{{ t("login.login") }}</span>
-          <span v-else>{{ t("login.logging") }}</span>
-        </el-button>
-      </el-form-item>
-      <el-form-item style="width:100%;" v-if="others.length > 0">
-        <div class="other" style="width: 100%;display: flex;">
-          其他方式
-          <div class="item" v-for="other in others" @click="openOtherLogin(other.id)" :title="other.name"
-               style="cursor: pointer">
-            <img :src="privateImage(other.icon)" style="width: 28px;height: 28px" alt=""/>
-          </div>
-        </div>
-      </el-form-item>
-<!--      <div class="form-footer">
-        <router-link to="/register" class="register-link">
-          注册
-        </router-link>
-      </div>-->
-    </el-form>
-    <!--  底部  -->
-    <Footer></Footer>
+
+        <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
+          <el-form-item prop="username">
+            <div class="input-wrapper">
+              <el-icon class="input-icon">
+                <UserFilled/>
+              </el-icon>
+              <el-input
+                  v-model="loginForm.username"
+                  type="text"
+                  auto-complete="off"
+                  :placeholder="t('login.textUsername')"
+                  class="custom-input"
+              />
+            </div>
+          </el-form-item>
+
+          <el-form-item prop="password">
+            <div class="input-wrapper">
+              <svg-icon icon-class="password2" class="input-icon"/>
+              <el-input
+                  v-model="loginForm.password"
+                  type="password"
+                  auto-complete="off"
+                  show-password
+                  :placeholder="t('login.textPassword')"
+                  @keyup.enter="handleLogin"
+                  class="custom-input"
+              />
+            </div>
+          </el-form-item>
+
+          <el-form-item prop="code" v-if="captchaEnabled">
+            <div class="captcha-wrapper">
+              <div class="input-wrapper captcha-input">
+                <svg-icon icon-class="validCode2" class="input-icon"/>
+                <el-input
+                    v-model="loginForm.captcha"
+                    auto-complete="off"
+                    :placeholder="t('login.textCaptcha')"
+                    @keyup.enter="handleLogin"
+                    class="custom-input"
+                />
+              </div>
+              <div class="captcha-image">
+                <img :src="codeUrl" @click="getCode" class="captcha-img" alt="验证码"/>
+              </div>
+            </div>
+          </el-form-item>
+
+          <el-form-item class="submit-item">
+            <el-button
+                class="login-button"
+                :loading="loading"
+                @click.prevent="handleLogin">
+              <span v-if="!loading">{{ t("login.login") }}</span>
+              <span v-else>{{ t("login.logging") }}</span>
+            </el-button>
+          </el-form-item>
+
+          <el-form-item v-if="others.length > 0" class="social-login">
+            <div class="divider">
+              <span class="divider-text">其他登录方式</span>
+            </div>
+            <div class="social-icons">
+              <div
+                  v-for="other in others"
+                  :key="other.id"
+                  class="social-icon"
+                  @click="openOtherLogin(other.id)"
+                  :title="other.name"
+              >
+                <img :src="privateImage(other.icon)" :alt="other.name"/>
+              </div>
+            </div>
+          </el-form-item>
+<!--          <div class="form-footer">-->
+<!--            <router-link to="/register" class="register-link">-->
+<!--              注册-->
+<!--            </router-link>-->
+<!--          </div>-->
+        </el-form>
+      </div>
+
+      <!-- 底部 -->
+      <Footer class="login-footer"/>
+    </div>
   </div>
 </template>
 
@@ -114,6 +131,7 @@ import {getToken} from '@/utils/Auth'
 import Footer from "@/components/Footer/index.vue"
 import {useRoute, useRouter} from "vue-router";
 import type {FormInstance, FormRules} from 'element-plus';
+import {UserFilled} from "@element-plus/icons-vue";
 
 const userStore: any = useUserStore();
 const route: any = useRoute();
@@ -276,165 +294,434 @@ getState();
 
 <style lang='scss' scoped>
 @use "sass:color";
-.login {
+
+// 高级素雅风配色方案
+$primary-color: #2c3e50; // 深蓝灰色主色调
+$secondary-color: #34495e; // 辅助深色
+$accent-color: #3498db; // 亮蓝色点缀
+$text-primary: #2c3e50; // 主要文字色
+$text-secondary: #7f8c8d; // 次要文字色
+$background-light: #ffffff; // 浅色背景
+$background-dark: #f8f9fa; // 浅灰背景
+$border-color: #e9ecef; // 边框色
+$shadow-color: rgba(44, 62, 80, 0.1); // 阴影色
+$success-color: #27ae60; // 成功色
+$error-color: #e74c3c; // 错误色
+
+.login-container {
+  position: relative;
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-image: url('../assets/images/login-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  color: $text-primary;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+// 左侧装饰区域
+.login-decoration {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(44, 62, 80, 0.85) 0%, rgba(52, 73, 94, 0.9) 100%);
   position: relative;
   overflow: hidden;
-  height: 100%;
-  width: 100%;
-  color: #000000d9;
-  background-image: url('../assets/images/login-bg.jpg');
-  background-size: 100% 100%;
-}
 
-.login::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #f0f2f5;
-  //background-size: cover;
-  //background-position: center;
-  //transform: scaleX(-1);
-  z-index: -1; /* 确保背景图在内容后面 */
-}
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(52, 152, 219, 0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+  }
 
-.top-box {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 0;
-  font-weight: 600;
-  font-size: 33px;
-  font-family: Myriad Pro, Helvetica Neue, Arial, Helvetica, sans-serif;
-  border-bottom: 1px solid #e5e5e5;
-  min-height: 60px;
-  text-shadow: 0 1px 0 #fff;
-
-  .title {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  .decoration-content {
+    position: relative;
+    z-index: 2;
     text-align: center;
-    margin: 0 0 0 10%;
+    max-width: 500px;
+    padding: 2rem;
+  }
 
-    img {
-      width: 44px;
-      margin-right: 10px;
+  .brand-info {
+    margin-bottom: 3rem;
+
+    .brand-logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 1.5rem;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+    }
+
+    .brand-title {
+      font-size: 2.5rem;
+      font-weight: 300;
+      color: white;
+      margin: 0 0 1rem 0;
+      letter-spacing: 1px;
+    }
+
+    .brand-slogan {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: 300;
+      margin: 0;
     }
   }
 
-  .right {
-    margin: 0 10% 0 0;
-  }
-}
-
-.login-form {
-  margin: 70px auto;
-  padding: 32px 20px 24px 20px;
-  width: 380px;
-  background-color: rgba(255, 255, 255, 0.7); // 半透明背景色
-  border: 1px solid #eaeaea; // 边框
-  border-radius: 10px;
-  transition: box-shadow 0.3s ease; // 平滑过渡效果
-
-  &:hover {
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1); // 鼠标悬停时的阴影
-  }
-
-
-  ::v-deep(.el-form-item__error) {
-    color: #FF8888;
-  }
-
-  .el-input {
-    height: 40px;
-
-    ::v-deep(.el-input-group__prepend) {
-      padding: 0 10px;
-    }
-  }
-
-}
-
-.login-tip {
-  font-size: 13px;
-  text-align: center;
-  color: #bfbfbf;
-}
-
-.login-code {
-  width: 33%;
-  height: 40px;
-  float: right;
-
-  img {
-    cursor: pointer;
-    vertical-align: middle;
-  }
-}
-
-.login-code-img {
-  height: 40px;
-  padding-left: 12px;
-}
-
-.operater-wrapper {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-
-  .find-password {
-    cursor: pointer;
-    font-size: 14px;
-  }
-
-  .rememberMe {
-    font-size: 14px;
-  }
-}
-
-.other {
-  .item {
-    margin: 0 6px;
-
-    img {
+  .decoration-elements {
+    .element {
+      position: absolute;
       border-radius: 50%;
+      background: rgba(52, 152, 219, 0.2);
+
+      &.element-1 {
+        width: 120px;
+        height: 120px;
+        top: 20%;
+        left: 10%;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      &.element-2 {
+        width: 80px;
+        height: 80px;
+        bottom: 25%;
+        right: 15%;
+        animation: float 8s ease-in-out infinite 1s;
+      }
+
+      &.element-3 {
+        width: 60px;
+        height: 60px;
+        top: 60%;
+        left: 20%;
+        animation: float 7s ease-in-out infinite 0.5s;
+      }
+    }
+  }
+}
+
+// 右侧登录区域
+.login-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  position: relative;
+
+  .login-card {
+    width: 100%;
+    max-width: 420px;
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 10px 30px rgba(44, 62, 80, 0.15);
+    border: 1px solid rgba(233, 236, 239, 0.8);
+
+    .card-header {
+      text-align: center;
+      margin-bottom: 2rem;
+
+      .login-title {
+        font-size: 1.8rem;
+        font-weight: 400;
+        color: $primary-color;
+        margin: 0 0 0.5rem 0;
+      }
+
+      .login-subtitle {
+        font-size: 0.95rem;
+        color: $text-secondary;
+        margin: 0;
+        font-weight: 300;
+      }
+    }
+
+    .login-form {
+      .el-form-item {
+        margin-bottom: 1.5rem;
+      }
+
+      ::v-deep(.el-form-item__error) {
+        color: $error-color;
+        font-size: 0.85rem;
+        padding-top: 0.25rem;
+      }
     }
   }
 
-  .item:first-child {
-    margin-left: 10px;
+  .login-footer {
+    position: absolute;
+    bottom: 1rem;
   }
 }
 
-.login-btn {
-  height: 40px;
-  padding: 6.4px 15px;
-  font-size: 16px;
-  border-radius: 2px;
+// 输入框样式
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background: white;
+
+  &:focus-within {
+    border-color: $accent-color;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  }
+
+  .input-icon {
+    margin: 0 10px;
+    color: $text-secondary;
+    font-size: 1.1rem;
+  }
+
+  .custom-input {
+    flex: 1;
+
+    :deep(.el-input__wrapper) {
+      border: none !important;
+      border-left: 1px solid $border-color !important;
+
+      &.is-focus {
+        box-shadow: none !important;
+      }
+    }
+
+    ::v-deep(.el-input__inner) {
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+      padding: 0.8rem 1rem;
+      font-size: 0.95rem;
+      color: $text-primary;
+      background: transparent;
+
+      &:focus {
+        border: none !important;
+      }
+
+      &::placeholder {
+        color: $text-secondary;
+        font-weight: 300;
+      }
+    }
+
+    ::v-deep(.el-input__suffix) {
+      padding-right: 1rem;
+
+      .el-input__icon {
+        color: $text-secondary;
+        cursor: pointer;
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: $accent-color;
+        }
+      }
+    }
+  }
 }
 
-$form-primary: #409EFF;
-
-.form-footer {
+// 验证码区域
+.captcha-wrapper {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
+  gap: 1rem;
 
-  .register-link {
-    color: $form-primary;
+  .captcha-input {
+    flex: 1;
+  }
+
+  .captcha-image {
+    flex-shrink: 0;
+
+    .captcha-img {
+      height: 42px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid $border-color;
+      transition: border-color 0.3s ease;
+
+      &:hover {
+        border-color: $accent-color;
+      }
+    }
+  }
+}
+
+// 登录按钮
+.submit-item {
+  margin-top: 2rem !important;
+  margin-bottom: 1rem !important;
+
+  .login-button {
+    width: 100%;
+    height: 46px;
+    background: linear-gradient(135deg, $accent-color 0%, #2980b9 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
     font-weight: 500;
-    font-size: 14px;
-    cursor: pointer;
-    transition: color 0.3s;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
 
     &:hover {
-      color: color.adjust(#409EFF, $lightness: -10%);
-      text-decoration: underline;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    ::v-deep(.el-loading-spinner) {
+      .circular {
+        width: 20px;
+        height: 20px;
+      }
     }
   }
+}
+
+// 社交登录
+.social-login {
+  .divider {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: $border-color;
+    }
+
+    .divider-text {
+      padding: 0 1rem;
+      color: $text-secondary;
+      font-size: 0.85rem;
+      font-weight: 300;
+    }
+  }
+
+  .social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+
+    .social-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: $background-dark;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid $border-color;
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(44, 62, 80, 0.15);
+        border-color: $accent-color;
+      }
+
+      img {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+}
+
+// 动画效果
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+// 响应式设计
+@media (max-width: 992px) {
+  .login-container {
+    flex-direction: column;
+  }
+
+  .login-decoration {
+    padding: 2rem 1rem;
+
+    .brand-title {
+      font-size: 2rem;
+    }
+  }
+
+  .login-main {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .login-decoration {
+    .brand-title {
+      font-size: 1.5rem;
+    }
+
+    .brand-slogan {
+      font-size: 1rem;
+    }
+  }
+
+  .login-main {
+    .login-card {
+      padding: 1.5rem;
+      margin: 1rem;
+    }
+  }
+
+  .captcha-wrapper {
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .captcha-image {
+      .captcha-img {
+        width: 100%;
+        height: auto;
+      }
+    }
+  }
+}
+
+.form-footer {
+  text-align: center;
 }
 </style>
