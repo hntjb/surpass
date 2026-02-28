@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 
@@ -39,7 +38,6 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 @MapperScan("org.dromara.surpass.persistence.mapper")
 public class SurpassApplication extends SpringBootServletInitializer {
     private static final Logger _logger = LoggerFactory.getLogger(SurpassApplication.class);
-
     public static void main(String[] args) {
         _logger.info("Start Surpass Application ...");
         ProductEnvironment.listEnvVars();
@@ -50,10 +48,4 @@ public class SurpassApplication extends SpringBootServletInitializer {
         _logger.info("Surpass Port {}", WebContext.getServerPort());
         _logger.info("Surpass started.");
     }
-
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(SurpassApplication.class);
-    }
-
 }
