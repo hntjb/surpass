@@ -50,7 +50,7 @@
 
   &.is-link {
     color: $primary;
-    
+
     &:hover {
       color: $primary-dark;
     }
@@ -126,7 +126,7 @@
           border-color: $primary;
           box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
         }
-        
+
         &.is-focus {
           border-color: $primary;
           box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
@@ -253,24 +253,25 @@
   box-shadow: $base-box-shadow-lg !important;
   border: none !important;
 
-  &.el-message--success {
-    background: linear-gradient(135deg, $success 0%, #2ECC71 100%) !important;
+  .el-message__content, .el-message__icon {
     color: white !important;
   }
 
+  &.el-message--success {
+    background: linear-gradient(135deg, $success 0%, #2ECC71 100%) !important;
+  }
+
+
   &.el-message--warning {
     background: linear-gradient(135deg, $warning 0%, #F1C40F 100%) !important;
-    color: white !important;
   }
 
   &.el-message--error {
     background: linear-gradient(135deg, $danger 0%, #E67E22 100%) !important;
-    color: white !important;
   }
 
   &.el-message--info {
     background: linear-gradient(135deg, $info 0%, #5D9CEC 100%) !important;
-    color: white !important;
   }
 }
 
